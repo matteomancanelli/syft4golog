@@ -54,7 +54,7 @@ void print_program(golog_program* root);
 void destroy_program(golog_program* root);
 
 // Comparison functions for golog_program
-//bool compare_symbols(Symbol* sym1, Symbol* sym2);
+//bool compare_symbols(const Symbol* sym1, const Symbol* sym2);
 //bool compare_programs(const golog_program* p1, const golog_program* p2);
 
 // Custom comparator for std::set

@@ -88,32 +88,9 @@ void print_program(golog_program *root) {
 // Destroy the Golog program tree
 void destroy_program(golog_program* root) {
     if (root == NULL) return;
-
-    destroy_symbol(root->symbol);
+    if(root->symbol) destroy_symbol(root->symbol);
+    
     destroy_program(root->left);
     destroy_program(root->right);
     free(root);
 }
-
-/*
-bool compare_symbols(Symbol* sym1, Symbol* sym2) {
-    if (sym1 == NULL && sym2 == NULL) return true;
-    if (sym1 == NULL || sym2 == NULL) return false;
-
-    return (sym1->sym_type == sym2->sym_type) && (strcmp(sym1->name, sym2->name) == 0);
-}
-
-bool compare_programs(const golog_program* p1, const golog_program* p2) {
-    if (p1 == NULL && p2 == NULL) return true;
-    if (p1 == NULL || p2 == NULL) return false;
-
-    if (p1->constr_type != p2->constr_type) return false;
-    if (!compare_symbols(p1->symbol, p2->symbol)) return false;
-
-    return compare_programs(p1->left, p2->left) && compare_programs(p1->right, p2->right);
-}
-
-bool golog_program_comparator::operator() (const golog_program* p1, const golog_program* p2) const {
-    return compare_programs(p1, p2);
-}
-*/
