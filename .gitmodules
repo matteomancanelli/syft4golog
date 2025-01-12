@@ -1,0 +1,3 @@
+[submodule "submodules/gologpp"]
+	path = submodules/gologpp
+	url = https://github.com/mancanelli/gologpp
