@@ -1,3 +1,6 @@
+add_subdirectory(parser)
+add_subdirectory(synthesis)
+
 # Define the full paths to the source files
 set(GOLOG_LEXER_SOURCE ${CMAKE_CURRENT_SOURCE_DIR}/golog_lexer.l)
 set(GOLOG_PARSER_SOURCE ${CMAKE_CURRENT_SOURCE_DIR}/golog_parser.y)
@@ -19,7 +22,7 @@ set(SOURCES
     ${MAIN_SOURCE}
 )
 
-include_directories(${EXT_INCLUDE_PATH})
+include_directories(${PARSER_INCLUDE_PATH} ${SYNTHESIS_INCLUDE_PATH} ${EXT_INCLUDE_PATH})
 include_directories(${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_CURRENT_SOURCE_DIR})
 
 # Create the library for the parser
@@ -27,7 +30,7 @@ add_library(golog_parser SHARED ${GOLOG_PROGRAM_SOURCE} ${BISON_GologParser_OUTP
 
 # Create the executable
 add_executable(GologExecutable ${SOURCES})
-target_link_libraries(GologExecutable golog_parser ${EXT_LIBRARIES_PATH} ${FLEX_LIBRARIES} ${BISON_LIBRARIES})
+target_link_libraries(GologExecutable golog_parser ${EXT_LIBRARIES_PATH} ${FLEX_LIBRARIES} ${BISON_LIBRARIES} ${PARSER_LIB_NAME} ${SYNTHESIS_LIB_NAME})
 
 # Install the header files
 install(

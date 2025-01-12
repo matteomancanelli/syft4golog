@@ -1,10 +1,11 @@
 cmake_minimum_required(VERSION 3.5)
-project(test)
+project(syft4golog)
 
 set(CMAKE_BUILD_TYPE Debug)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 # Set module path for CMake
 set(CMAKE_MODULE_PATH
@@ -32,7 +33,7 @@ add_subdirectory(${LYDIA_DIR})
 set(LYDIA_LIBRARIES ${LYDIA_DIR})
 
 # Include paths for Lydia
-set(LYDIA_INCLUDE_DIR ${LYDIA_DIR}/lib/include)
+set(LYDIA_INCLUDE_DIR ${LYDIA_DIR}/lib/include ${LYDIA_DIR}/lib/src)
 set(LYDIA_THIRD_PARTY_INCLUDE_PATH
     "${LYDIA_DIR}/third_party/spdlog/include"
     "${LYDIA_DIR}/third_party/CLI11/include"
@@ -41,8 +42,18 @@ set(LYDIA_THIRD_PARTY_INCLUDE_PATH
     "/usr/include"
 )
 
+# Set gologpp-related variables
+set(GOLOGPP_DIR ${PROJECT_SOURCE_DIR}/submodules/gologpp)
+add_subdirectory(${GOLOGPP_DIR})
+
+# Include paths for gologpp
+set(GOLOGPP_INCLUDE_DIRS
+    ${GOLOGPP_DIR}/include
+    ${GOLOGPP_DIR}/src
+)
+
 # External libraries and include paths
-set(EXT_LIBRARIES_PATH
+set(EXT_LIBRARIES_PATH lydia
     ${LYDIA_LIBRARIES}
     ${CUDD_LIBRARIES}
     ${MONA_DFA_LIBRARIES}
@@ -54,6 +65,7 @@ set(EXT_LIBRARIES_PATH
 set(EXT_INCLUDE_PATH
     ${LYDIA_INCLUDE_DIR}
     ${LYDIA_THIRD_PARTY_INCLUDE_PATH}
+    ${GOLOGPP_INCLUDE_DIRS}
     ${CUDD_INCLUDE_DIRS}
     ${MONA_MEM_INCLUDE_DIRS}
     ${MONA_BDD_INCLUDE_DIRS}
