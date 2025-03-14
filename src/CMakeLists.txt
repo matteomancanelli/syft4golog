@@ -1,36 +1,33 @@
-add_subdirectory(parser)
-add_subdirectory(synthesis)
-
-# Define the full paths to the source files
-set(GOLOG_LEXER_SOURCE ${CMAKE_CURRENT_SOURCE_DIR}/golog_lexer.l)
-set(GOLOG_PARSER_SOURCE ${CMAKE_CURRENT_SOURCE_DIR}/golog_parser.y)
-set(GOLOG_PROGRAM_SOURCE ${CMAKE_CURRENT_SOURCE_DIR}/golog_program.cpp)
-set(TRANS_SOURCE ${CMAKE_CURRENT_SOURCE_DIR}/trans.c)
-set(MAIN_SOURCE ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp)
-
-# Generate the parser and lexer
-BISON_TARGET(GologParser ${GOLOG_PARSER_SOURCE} ${CMAKE_CURRENT_BINARY_DIR}/golog_parser.c DEFINES_FILE ${CMAKE_CURRENT_BINARY_DIR}/golog_parser.h)
-FLEX_TARGET(GologLexer ${GOLOG_LEXER_SOURCE} ${CMAKE_CURRENT_BINARY_DIR}/golog_lexer.c DEFINES_FILE ${CMAKE_CURRENT_BINARY_DIR}/golog_lexer.h)
-ADD_FLEX_BISON_DEPENDENCY(GologLexer GologParser)
-
 # Specify the sources for the executable
 set(SOURCES
-    ${BISON_GologParser_OUTPUTS}
-    ${FLEX_GologLexer_OUTPUTS}
-    ${GOLOG_PROGRAM_SOURCE}
-    ${TRANS_SOURCE}
-    ${MAIN_SOURCE}
+    ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/guide_stub.c
 )
 
-include_directories(${PARSER_INCLUDE_PATH} ${SYNTHESIS_INCLUDE_PATH} ${EXT_INCLUDE_PATH})
-include_directories(${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_CURRENT_SOURCE_DIR})
+include_directories(${CMAKE_CURRENT_SOURCE_DIR} ${EXT_INCLUDE_PATH})
 
-# Create the library for the parser
-add_library(golog_parser SHARED ${GOLOG_PROGRAM_SOURCE} ${BISON_GologParser_OUTPUTS} ${FLEX_GologLexer_OUTPUTS})
+link_directories(/opt/eclipse_prolog/eclipse_prolog/lib/x86_64_linux)
+
+set(FLEX_LIBRARIES "")
+set(BISON_LIBRARIES "")
 
 # Create the executable
 add_executable(GologExecutable ${SOURCES})
-target_link_libraries(GologExecutable golog_parser ${EXT_LIBRARIES_PATH} ${FLEX_LIBRARIES} ${BISON_LIBRARIES} ${PARSER_LIB_NAME} ${SYNTHESIS_LIB_NAME})
+
+# Explicitly list libraries to avoid linking with Flex
+target_link_libraries(GologExecutable 
+    ${LYDIA_LIBRARIES}
+    ${CUDD_LIBRARIES}
+    ${GOLOGPP_LIBRARIES}
+    ${MONA_DFA_LIBRARIES}
+    ${MONA_BDD_LIBRARIES}
+    ${MONA_MEM_LIBRARIES}
+    ${SPOT_LIBRARIES}
+    golog++ 
+    parsegolog++ 
+    readylog++ 
+    eclipse
+)
 
 # Install the header files
 install(

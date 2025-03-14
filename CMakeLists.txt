@@ -6,6 +6,7 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,--no-as-needed")
 
 # Set module path for CMake
 set(CMAKE_MODULE_PATH
@@ -17,9 +18,11 @@ set(CMAKE_MODULE_PATH
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 
+file(COPY ${CMAKE_SOURCE_DIR}/examples DESTINATION ${CMAKE_BINARY_DIR})
+
 # Find packages
-find_package(FLEX REQUIRED)
-find_package(BISON REQUIRED)
+set(FLEX_LIBRARIES "")
+set(BISON_LIBRARIES "")
 find_package(cudd REQUIRED)
 find_package(mona REQUIRED)
 find_package(spot REQUIRED)
@@ -44,18 +47,23 @@ set(LYDIA_THIRD_PARTY_INCLUDE_PATH
 
 # Set gologpp-related variables
 set(GOLOGPP_DIR ${PROJECT_SOURCE_DIR}/submodules/gologpp)
+set(FLEX_LIBRARIES "" CACHE INTERNAL "Explicitly empty to prevent linking with libfl")
+set(BISON_LIBRARIES "" CACHE INTERNAL "Explicitly empty to prevent linking with Bison")
 add_subdirectory(${GOLOGPP_DIR})
+set(GOLOGPP_LIBRARIES ${GOLOGPP_DIR}/src)
 
 # Include paths for gologpp
 set(GOLOGPP_INCLUDE_DIRS
-    ${GOLOGPP_DIR}/include
+    ${GOLOGPP_DIR}
     ${GOLOGPP_DIR}/src
+    ${GOLOGPP_DIR}/src/parser
 )
 
 # External libraries and include paths
 set(EXT_LIBRARIES_PATH lydia
     ${LYDIA_LIBRARIES}
     ${CUDD_LIBRARIES}
+    ${GOLOGPP_LIBRARIES}
     ${MONA_DFA_LIBRARIES}
     ${MONA_BDD_LIBRARIES}
     ${MONA_MEM_LIBRARIES}
@@ -72,9 +80,6 @@ set(EXT_INCLUDE_PATH
     ${MONA_DFA_INCLUDE_DIRS}
     ${SPOT_INCLUDE_DIRS}
 )
-
-message(STATUS "EXT_LIBRARIES_PATH: ${EXT_LIBRARIES_PATH}")
-message(STATUS "EXT_INCLUDE_PATH: ${EXT_INCLUDE_PATH}")
 
 # Add the src directory
 add_subdirectory(src)
