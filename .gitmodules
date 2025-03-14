@@ -4,3 +4,7 @@
 [submodule "submodules/gologpp"]
 	path = submodules/gologpp
 	url = https://github.com/mancanelli/gologpp
+[submodules "submodules/lydia"]
+	path = submodules/lydia
+	url = https://github.com/whitemech/lydia
+	branch = main
