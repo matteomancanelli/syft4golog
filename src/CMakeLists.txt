@@ -26,7 +26,6 @@ target_link_libraries(GologExecutable
     golog++ 
     parsegolog++ 
     readylog++ 
-    eclipse
 )
 
 # Install the header files
