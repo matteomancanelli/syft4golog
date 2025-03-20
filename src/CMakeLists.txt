@@ -1,7 +1,10 @@
 # Specify the sources for the executable
 set(SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/syntactic_closure.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/transitions.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/guide_stub.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/utilities.cpp
 )
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR} ${EXT_INCLUDE_PATH})
