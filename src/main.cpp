@@ -16,6 +16,7 @@
 
 #include "syntactic_closure.h"
 #include "transitions.h"
+#include "utilities.h"
 
 
 int main() {
@@ -36,7 +37,7 @@ int main() {
         }
         
         const gologpp::Instruction& definition = mainproc->definition();
-        std::set<const gologpp::Instruction*> syntactic_closure = getSyntacticClosure(&definition);
+        auto syntactic_closure = computeSyntacticClosure(&definition);
 
         std::cout << "Syntactic closure of the main procedure:" << std::endl;
         std::cout << std::endl;
@@ -75,7 +76,7 @@ int main() {
             std::cout << instruction->to_string("") << std::endl;
 
             std::cout << "Final " << i << std::endl;
-            std::cout << F(instruction) << std::endl;
+            std::cout << F(instruction)->to_string("") << std::endl;
             std::cout << std::endl;
 
             std::cout << "Trans " << i << std::endl;

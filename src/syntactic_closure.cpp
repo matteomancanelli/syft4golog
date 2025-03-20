@@ -1,22 +1,24 @@
 #include "syntactic_closure.h"
 
-std::set<const gologpp::Instruction*> getSyntacticClosure(const gologpp::Instruction* instruction) {
+InstructionSet computeSyntacticClosure(const gologpp::Instruction* instruction) {
     if (const auto* conditional = dynamic_cast<const gologpp::Conditional<gologpp::Instruction>*>(instruction)) {
         const gologpp::Instruction* simplified = simplifyConditional(conditional);
-        return getSyntacticClosure(simplified);
+        return computeSyntacticClosure(simplified);
     }
     else if (const auto* while_loop = dynamic_cast<const gologpp::While*>(instruction)) {
         const gologpp::Instruction* simplified = simplifyWhile(while_loop);
-        return getSyntacticClosure(simplified);
+        return computeSyntacticClosure(simplified);
     }
 
+    InstructionSet syntactic_closure = {instruction};
+    
     const gologpp::Instruction* nil_instruction = new gologpp::Test(new gologpp::Value(gologpp::type<gologpp::BoolType>(), true));
-    std::set<const gologpp::Instruction*> syntactic_closure = {instruction, nil_instruction};    
+    syntactic_closure.insert(nil_instruction);
 
     // Check the actual type of the instruction
     if (const auto* block = dynamic_cast<const gologpp::Block*>(instruction)) {
         if (block->elements().size() == 1) {
-            return getSyntacticClosure(block->elements().front().get());
+            return computeSyntacticClosure(block->elements().front().get());
         }
         else {
             const gologpp::Instruction* first_instruction = block->elements().front().get();
@@ -30,7 +32,7 @@ std::set<const gologpp::Instruction*> getSyntacticClosure(const gologpp::Instruc
             gologpp::Scope* parent_scope = const_cast<gologpp::Scope*>(&block->scope().parent_scope());
             const gologpp::Instruction* rest_block = new gologpp::Block(parent_scope, rest_elements);
 
-            std::set<const gologpp::Instruction*> sc_first = getSyntacticClosure(first_instruction);
+            InstructionSet sc_first = computeSyntacticClosure(first_instruction);
             for (const auto* first_sub : sc_first) {
                 const std::vector<gologpp::Instruction*>& new_seq = {const_cast<gologpp::Instruction*>(first_sub), const_cast<gologpp::Instruction*>(rest_block)};
                 gologpp::Scope* new_scope = const_cast<gologpp::Scope*>(&block->scope().parent_scope());
@@ -39,19 +41,24 @@ std::set<const gologpp::Instruction*> getSyntacticClosure(const gologpp::Instruc
                 syntactic_closure.insert(new_block);
             }
 
-            std::set<const gologpp::Instruction*> sc_rest = getSyntacticClosure(rest_block);
-            syntactic_closure.insert(sc_rest.begin(), sc_rest.end());
+            InstructionSet sc_rest = computeSyntacticClosure(rest_block);
+            for (const auto* rest_sub : sc_rest) {
+                syntactic_closure.insert(rest_sub);
+            }
         }
     }
     else if (const auto* choose = dynamic_cast<const gologpp::Choose*>(instruction)) {
         for (const auto& alternative : choose->alternatives()) {
-            std::set<const gologpp::Instruction*> sc_alt = getSyntacticClosure(alternative.get());
-            syntactic_closure.insert(sc_alt.begin(), sc_alt.end());
+            InstructionSet sc_alt = computeSyntacticClosure(alternative.get());
+            
+            for (const auto* alt_sub : sc_alt) {
+                syntactic_closure.insert(alt_sub);
+            }
         }
     }
     else if (const auto* star = dynamic_cast<const gologpp::Star*>(instruction)) {        
         const gologpp::Instruction* body = &star->statement();
-        std::set<const gologpp::Instruction*> sc_body = getSyntacticClosure(body);
+        InstructionSet sc_body = computeSyntacticClosure(body);
         
         for (const auto* body_sub : sc_body) {
             std::vector<gologpp::Instruction*> new_seq = {const_cast<gologpp::Instruction*>(body_sub), const_cast<gologpp::Instruction*>(instruction)};
@@ -63,8 +70,11 @@ std::set<const gologpp::Instruction*> getSyntacticClosure(const gologpp::Instruc
     }
     else if (const auto* pick = dynamic_cast<const gologpp::Pick*>(instruction)) {        
         const gologpp::Instruction* body = &pick->statement();
-        std::set<const gologpp::Instruction*> sc_body = getSyntacticClosure(body);
-        syntactic_closure.insert(sc_body.begin(), sc_body.end());
+        InstructionSet sc_body = computeSyntacticClosure(body);
+
+        for (const auto* body_sub : sc_body) {
+            syntactic_closure.insert(body_sub);
+        }
     }
     else if (const auto* test = dynamic_cast<const gologpp::Test*>(instruction)) {
         // Do nothing
