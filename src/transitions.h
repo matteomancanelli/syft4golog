@@ -14,18 +14,15 @@
 
 #include "utilities.h"
 
-/**
- * Computes the final condition (F) of an instruction
- * @param instruction The instruction to evaluate
- * @return An expression representing the final condition
+/** 
+ * Computes the final condition (F) of an instruction.
+ * The final condition is true in a state iff the program can legally terminate.
  */
 gologpp::Expression* F(const gologpp::Instruction* instruction);
 
-/**
- * Computes the transition relation (T) of an instruction with respect to an action
- * @param instruction The instruction to evaluate
- * @param action The action with respect to which transitions are computed
- * @return A set of condition/instruction pairs representing possible transitions
+/** 
+ * Computes the transition relation (T) of an instruction with respect to an action.
+ * The transition relation defines the program configurations that can be reached by executing a given action. 
  */
 std::set<std::pair<gologpp::Expression*, gologpp::Instruction*>> T(
     const gologpp::Instruction* instruction, 

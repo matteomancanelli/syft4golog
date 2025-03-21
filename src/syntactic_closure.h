@@ -14,10 +14,9 @@
 
 #include "utilities.h"
 
-/**
- * Computes the syntactic closure of a given program instruction
- * @param instruction The program instruction for which to compute the syntactic closure
- * @return A set containing all instructions in the syntactic closure
+/** 
+ * Computes the syntactic closure of a given program instruction.
+ * The syntactic closure is the set of all subprograms that can be reached during execution.
  */
 InstructionSet computeSyntacticClosure(const gologpp::Instruction* instruction);
 
