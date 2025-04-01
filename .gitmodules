@@ -1,6 +1,6 @@
-[submodule "submodules/lydia"]
-	path = submodules/lydia
-	url = https://github.com/whitemech/lydia
 [submodule "submodules/gologpp"]
 	path = submodules/gologpp
 	url = https://github.com/mancanelli/gologpp
+[submodule "submodules/LydiaSyft"]
+	path = submodules/LydiaSyft
+	url = git@github.com:GianmarcoDIAG/LydiaSyft.git
