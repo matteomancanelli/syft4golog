@@ -4,6 +4,9 @@
 #include <vector>
 #include <memory>
 
+#include "synthesis/header/VarMgr.h"
+#include "utils/string_utilities.h"
+
 #include "parser/parser.h"
 
 #include "model/action.h"
@@ -17,10 +20,13 @@
 #include "syntactic_closure.h"
 #include "transitions.h"
 #include "utilities.h"
+extern "C" int yylex() { return 0; } ;
 
-
-int main() {
+int main(int argc, char ** argv) {
     try {
+        std::string ts = Syft::to_upper_copy("hello, world!");
+        std::cout << "Uppercase string: " << ts << std::endl;
+
         // Parse the Golog program
         //std::string filename = "../examples/robot_program.gpp";
         //std::string filename = "../examples/minimal_example.gpp";

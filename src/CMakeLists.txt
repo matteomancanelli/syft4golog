@@ -19,12 +19,14 @@ add_executable(GologExecutable ${SOURCES})
 
 # Explicitly list libraries to avoid linking with Flex
 target_link_libraries(GologExecutable 
-    ${LYDIA_LIBRARIES}
     ${CUDD_LIBRARIES}
-    ${GOLOGPP_LIBRARIES}
     ${MONA_DFA_LIBRARIES}
     ${MONA_BDD_LIBRARIES}
     ${MONA_MEM_LIBRARIES}
+    ${LYDIA_LIBRARIES} # Lydia
+    ${UTILS_LIB_NAME} # LydiaSyft
+    ${PARSER_LIB_NAME} # LydiaSyft
+    ${SYNTHESIS_LIB_NAME} # LydiaSyft
     ${SPOT_LIBRARIES}
     golog++ 
     parsegolog++ 
