@@ -4,3 +4,4 @@
 [submodule "submodules/LydiaSyft"]
 	path = submodules/LydiaSyft
 	url = git@github.com:GianmarcoDIAG/LydiaSyft.git
+	branch = main
