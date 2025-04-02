@@ -5,6 +5,7 @@ set(SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/transitions.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/guide_stub.c
     ${CMAKE_CURRENT_SOURCE_DIR}/utilities.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/domain.cpp
 )
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR} ${EXT_INCLUDE_PATH})
@@ -23,7 +24,6 @@ target_link_libraries(GologExecutable
     ${MONA_DFA_LIBRARIES}
     ${MONA_BDD_LIBRARIES}
     ${MONA_MEM_LIBRARIES}
-    ${LYDIA_LIBRARIES} # Lydia
     ${UTILS_LIB_NAME} # LydiaSyft
     ${PARSER_LIB_NAME} # LydiaSyft
     ${SYNTHESIS_LIB_NAME} # LydiaSyft

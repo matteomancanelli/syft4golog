@@ -20,12 +20,24 @@
 #include "syntactic_closure.h"
 #include "transitions.h"
 #include "utilities.h"
+
+#include "domain.h"
 extern "C" int yylex() { return 0; } ;
 
 int main(int argc, char ** argv) {
     try {
+        // test correct inclusion of LydiaSyft's functionalities
         std::string ts = Syft::to_upper_copy("hello, world!");
         std::cout << "Uppercase string: " << ts << std::endl;
+
+        // test domain
+        std::shared_ptr<Syft::VarMgr> var_mgr = std::make_shared<Syft::VarMgr>();
+        std::string domain_file = "./../../examples/fond/domain.pddl";
+        std::string init_file = "./../../examples/fond/test1.pddl";
+
+        Domain domain(var_mgr, domain_file, init_file);
+        Syft::SymbolicStateDfa domain_sdfa = domain.to_symbolic();
+        domain.print_domain();
 
         // Parse the Golog program
         //std::string filename = "../examples/robot_program.gpp";
