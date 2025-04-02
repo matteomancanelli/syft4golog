@@ -31,6 +31,7 @@ export ECLIPSETHIRDPARTY=/vol/Eclipse/thirdparty
 CONFIG_SITE=config.$ECLIPSEARCH
 ./configure
 make -f Makefile.$ECLIPSEARCH
+./RUNME
 export PATH="{your/eclipse/path}:$PATH"
 source ~/.bashrc
 ```
@@ -54,7 +55,7 @@ source ~/.bashrc
 git clone git@github.com:GianmarcoDIAG/LydiaSyft.git --recursive
 ```
 
-Follow the instructions in the README.md to complete the installation
+Follow the instructions in their README.md to complete the installation
 
 ## Build
 
