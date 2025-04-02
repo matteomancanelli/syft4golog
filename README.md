@@ -6,7 +6,6 @@ You need to install the following dependencies:
 
 ```
 sudo apt install libgmp-dev tcl8.6-dev tk8.6-dev
-
 ```
 
 The project depends on gologpp, see https://github.com/MASKOR/gologpp 
@@ -19,7 +18,6 @@ The project also depends on LydiaSyft, see https://github.com/GianmarcoDIAG/Lydi
 
 ```
 git clone git://git.code.sf.net/p/eclipse-clp/git eclipse-clp-git
-
 ```
 
 On Ubuntu 22.04 with 64-bits architecture, this should work:
