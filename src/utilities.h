@@ -1,31 +1,41 @@
-#ifndef UTILITIES_H
-#define UTILITIES_H
+#pragma once
 
 #include <set>
 #include <string>
+#include <vector>
+#include <utility>
+#include <iostream>
 
 #include "model/expressions.h"
 #include "model/value.h"
 #include "model/formula.h"
 #include "model/procedural.h"
 
+#include "node_factory.h"
+#include "sem_cache.h"
+#include "transitions.h"
 
-/*******************************************************************************
- * INSTRUCTION SET UTILITIES
- * Functions and types for handling sets of instructions with string comparison
- *******************************************************************************/
-
-/* Custom comparator for gologpp::Instruction pointers */
-struct InstructionComparator {
-    bool operator()(const gologpp::Instruction* lhs, const gologpp::Instruction* rhs) const;
+// ---------- InstructionSet: pointer identity ----------
+struct PtrLess {
+    bool operator()(const gologpp::Instruction* a, const gologpp::Instruction* b) const {
+        return std::less<const gologpp::Instruction*>()(a, b);
+    }
 };
 
-/* A set type that stores instructions and compares them by their string representation */
-using InstructionSet = std::set<const gologpp::Instruction*, InstructionComparator>;
+using InstructionSet = std::set<const gologpp::Instruction*, PtrLess>;
 
-/* Checks if an instruction with the same string representation is already in the set */
-bool isInstructionInSet(const InstructionSet& set, const gologpp::Instruction* instr);
+// ---------- helpers ----------
+bool elementIsAlreadyPresent(const InstructionSet& set, const gologpp::Instruction* instruction);
 
+// returns {true/false, value} if expr is boolean constant
+bool getBoolValue(const gologpp::Expression* expression, bool& result);
+
+// builds boolean op and constant-folds if possible
+gologpp::Expression* createBooleanOperation(
+    gologpp::BooleanOperator operation,
+    gologpp::Expression* left,
+    gologpp::Expression* right,
+    NodeFactory& factory);
 
 /*******************************************************************************
  * INSTRUCTION TRANSFORMATION
@@ -36,38 +46,10 @@ bool isInstructionInSet(const InstructionSet& set, const gologpp::Instruction* i
  * Transforms a conditional instruction into an equivalent instruction using choose and test by using the following rule:
  * if (condition) then program_1 else program_2 = (condition ? ; program_1) | (¬condition ? program_2)
  */
-const gologpp::Instruction* simplifyConditional(const gologpp::Conditional<gologpp::Instruction>* conditional);
+//const gologpp::Instruction* simplifyConditional(const gologpp::Conditional<gologpp::Instruction>* conditional);
 
 /** 
  * Transforms a while loop into an equivalent instruction using star and test by using the following rule:
  * while(condition) program = (condition? ; program)* ; ¬condition
  */
-const gologpp::Instruction* simplifyWhile(const gologpp::While* while_loop);
-
-
-/*******************************************************************************
- * BOOLEAN EXPRESSION UTILITIES
- * Functions for evaluating and simplifying boolean expressions
- *******************************************************************************/
-
-/**
- * Attempts to extract a boolean value from an expression
- * 
- * @param expression The expression to evaluate
- * @param result Output parameter where the boolean value will be stored if successful
- * @return true if the expression could be evaluated to a boolean
- */
-bool getBoolValue(const gologpp::Expression* expression, bool& result);
-
-/**
- * Creates a simplified boolean operation between two expressions
- * 
- * @param lhs Left-hand side expression
- * @param op Boolean operator (AND or OR)
- * @param rhs Right-hand side expression
- * @return A simplified expression representing the boolean operation
- */
-gologpp::Expression* createBooleanOperation(gologpp::Expression* lhs, gologpp::BooleanOperator op, gologpp::Expression* rhs);
-
-
-#endif // UTILITIES_H
+//const gologpp::Instruction* simplifyWhile(const gologpp::While* while_loop);

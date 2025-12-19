@@ -26,6 +26,7 @@ set(BISON_LIBRARIES "")
 find_package(cudd REQUIRED)
 find_package(mona REQUIRED)
 find_package(spot REQUIRED)
+find_package(Syft REQUIRED)
 
 # Set LydiaSyft-related variables
 set(LYDIASYFT_DIR ${PROJECT_SOURCE_DIR}/submodules/LydiaSyft)

@@ -1,154 +1,196 @@
 #include "transitions.h"
 
-/** 
- * Computes the final condition (F) of an instruction.
- * The final condition is true in a state iff the program can legally terminate.
- */
-gologpp::Expression* F(const gologpp::Instruction* instruction) {
-    gologpp::Expression* fin;
+static gologpp::Expression* F_impl(const gologpp::Instruction* instruction, NodeFactory& factory, SemCache& cache) {
+    factory.initSingletons();
 
+    // Test
+    if (const auto* test = dynamic_cast<const gologpp::Test*>(instruction)) {
+        return const_cast<gologpp::Expression*>(&test->expression());
+    }
+
+    // Action
+    if (dynamic_cast<const gologpp::Reference<gologpp::Action>*>(instruction)) {
+        return factory.makeExpr<gologpp::Value>(gologpp::type<gologpp::BoolType>(), false);
+    }
+
+    // Block (sequence)
     if (const auto* block = dynamic_cast<const gologpp::Block*>(instruction)) {
-        // For a single-element block, return the F of that element
-        if (block->elements().size() == 1) {
-            return F(block->elements().front().get());
-        }
+        if (block->elements().empty()) 
+            return factory.makeExpr<gologpp::Value>(gologpp::type<gologpp::BoolType>(), true);
 
-        // For sequences, F(δ1;δ2) = F(δ1) ∧ F(δ2)
-        fin = new gologpp::Value(gologpp::type<gologpp::BoolType>(), true);
+        gologpp::Instruction* first = block->elements().front().get();
         gologpp::BooleanOperator op = gologpp::BooleanOperator::AND;
-        
-        for (const auto& instr : block->elements()) {
-            gologpp::Expression* instr_F = F(instr.get());
-            fin = createBooleanOperation(fin, op, instr_F);
+
+        gologpp::Expression* fin = F(first, factory, cache);
+        for (std::size_t i = 1; i < block->elements().size(); ++i) {
+            gologpp::Expression* instr_F = F(block->elements()[i].get(), factory, cache);
+            fin = createBooleanOperation(op, fin, instr_F, factory);        
         }
+        
+        return fin;
     }
-    else if (const auto* choose = dynamic_cast<const gologpp::Choose*>(instruction)) {
-        // For nondeterministic branch, F(δ1|δ2) = F(δ1) ∨ F(δ2)
-        fin = new gologpp::Value(gologpp::type<gologpp::BoolType>(), false);
+
+    // Choose
+    if (const auto* c = dynamic_cast<const gologpp::Choose*>(instruction)) {
+        const auto& alternatives = c->alternatives();
+        if (alternatives.empty()) 
+            return factory.makeExpr<gologpp::Value>(gologpp::type<gologpp::BoolType>(), false);
+
         gologpp::BooleanOperator op = gologpp::BooleanOperator::OR;
-
-        for (const auto& alternative : choose->alternatives()) {
-            gologpp::Expression* branch_F = F(alternative.get());
-            fin = createBooleanOperation(fin, op, branch_F);
+        gologpp::Expression* fin = F(alternatives[0].get(), factory, cache);
+        for (std::size_t i = 1; i < alternatives.size(); ++i) {
+            gologpp::Expression* instr_F = F(alternatives[i].get(), factory, cache);
+            fin = createBooleanOperation(op, fin, instr_F, factory);
         }
-    }
-    else if (const auto* star = dynamic_cast<const gologpp::Star*>(instruction)) {       
-        // For nondeterministic iteration, F(δ*) = true 
-        fin = new gologpp::Value(gologpp::type<gologpp::BoolType>(), true);
-    }
-    else if (const auto* pick = dynamic_cast<const gologpp::Pick*>(instruction)) {
-        // TODO (maybe)
-    }
-    else if (const auto* test = dynamic_cast<const gologpp::Test*>(instruction)) {
-        // For test, F(ϕ?) = ϕ
-        fin = const_cast<gologpp::Expression*>(&test->expression());
-    }
-    else if (const auto* action_call = dynamic_cast<const gologpp::Reference<gologpp::Action>*>(instruction)) {
-        // For atomic actions, F(a) = false
-        fin = new gologpp::Value(gologpp::type<gologpp::BoolType>(), false);
+
+        return fin;
     }
 
-    return fin;
-} 
+    // Star
+    if (dynamic_cast<const gologpp::Star*>(instruction)) {
+        return factory.makeExpr<gologpp::Value>(gologpp::type<gologpp::BoolType>(), true);
+    }
 
-/** 
- * Computes the transition relation (T) of an instruction with respect to an action.
- * The transition relation defines the program configurations that can be reached by executing a given action. 
- */
-std::set<std::pair<gologpp::Expression*, gologpp::Instruction*>> T(const gologpp::Instruction* instruction, const gologpp::Reference<gologpp::Action>* action) {
-    std::set<std::pair<gologpp::Expression*, gologpp::Instruction*>> trans;
+    // Pick (not supported for now)
+    if (dynamic_cast<const gologpp::Pick*>(instruction)) {
+        throw std::runtime_error("Pick is not supported in this implementation.");
+    }
 
+    throw std::runtime_error("F: Unsupported instruction type.");
+}
+
+gologpp::Expression* F(const gologpp::Instruction* instruction, NodeFactory& factory, SemCache& cache) {
+    auto it = cache.Fcache.find(instruction);
+    if (it != cache.Fcache.end()) return it->second;
+    
+    auto* res = F_impl(instruction, factory, cache);
+    cache.Fcache[instruction] = res;
+    return res;
+}
+
+
+static Transitions T_impl(const gologpp::Instruction* instruction, const gologpp::Reference<gologpp::Action>* target_action, NodeFactory& factory, SemCache& cache) {
+    factory.initSingletons();
+
+    Transitions out;
+
+    // Test: no action transitions
+    if (dynamic_cast<const gologpp::Test*>(instruction)) {
+        return out;
+    }
+
+    // Action
+    if (const auto* act = dynamic_cast<const gologpp::Reference<gologpp::Action>*>(instruction)) {
+        if (act->to_string("") == target_action->to_string("")) {
+            gologpp::Action& target = *target_action->target();
+            auto action_precondition = &target.precondition();
+
+            bool bool_value;
+            if (!(getBoolValue(action_precondition, bool_value) && !bool_value)) {
+                out.emplace_back(action_precondition, factory.nil);
+            }
+        }
+
+        return out;
+    }
+    
+    // Block: sequence
     if (const auto* block = dynamic_cast<const gologpp::Block*>(instruction)) {
-        // For a single-element block, return the T of that element
-        if (block->elements().size() == 1) {
-            return T(block->elements().front().get(), action);
-        }
+        if (block->elements().empty()) 
+            return out;
 
-        // For sequences, T(δ1;δ2,a) = {(¬F(δ1) ∧ ϕ, δ'1;δ2) | (ϕ,δ'1) ∈ T(δ1,a)} ∪ {(F(δ1) ∧ ϕ, δ'2) | (ϕ,δ'2) ∈ T(δ2,a)}
+        if (block->elements().size() == 1)
+            return T(block->elements().front().get(), target_action, factory, cache);
         
-        // Extract the first instruction from a sequence and store the rest as a new sequence
-        const gologpp::Instruction* first_instruction = block->elements().front().get();
-        std::vector<gologpp::Instruction*> rest_elements;
+        gologpp::Instruction* first = block->elements().front().get();
+        auto* F_first = F(first, factory, cache);
+        auto* not_F_first = factory.makeExpr<gologpp::Negation>(F_first);
 
+        //std::vector<const gologpp::Instruction*> rest_elems(block->elements().begin() + 1, block->elements().end());
+
+        std::vector<gologpp::Instruction*> rest_elems;
+        rest_elems.reserve(block->elements().size() - 1);
         for (size_t i = 1; i < block->elements().size(); ++i) {
-            gologpp::Instruction* instr = const_cast<gologpp::Instruction*>(block->elements()[i].get());
-            rest_elements.push_back(instr);
+            rest_elems.push_back(const_cast<gologpp::Instruction*>(block->elements()[i].get()));
         }
 
         gologpp::Scope* parent_scope = const_cast<gologpp::Scope*>(&block->scope().parent_scope());
-        const gologpp::Instruction* rest_block = new gologpp::Block(parent_scope, rest_elements);
+        gologpp::Instruction* rest_block = factory.makeInstr<gologpp::Block>(parent_scope, rest_elems);
 
-        // First part: {(¬F(δ1) ∧ ϕ, δ'1;δ2) | (ϕ,δ'1) ∈ T(δ1,a)}
-        for (auto [condition, subprogram] : T(first_instruction, action)) {
-            gologpp::Expression* first_expr = new gologpp::Negation(F(first_instruction));
-            gologpp::Expression* new_condition = createBooleanOperation(first_expr, gologpp::BooleanOperator::AND, condition);
-            gologpp::Scope* parent_scope = const_cast<gologpp::Scope*>(&block->scope().parent_scope());
-            gologpp::Instruction* new_subprogram = new gologpp::Block(parent_scope, {const_cast<gologpp::Instruction*>(subprogram), const_cast<gologpp::Instruction*>(rest_block)});
+        // Part 1: transitions from first, when not final
+        for (auto [condition, subprogram] : T(first, target_action, factory, cache)) {
 
-            // Skip the transition if the condition evaluates to false
+            gologpp::Expression* new_condition = createBooleanOperation(gologpp::BooleanOperator::AND, not_F_first, condition, factory);
+
+            std::vector<gologpp::Instruction*> seq{subprogram, rest_block};
+            gologpp::Instruction* new_subprogram = factory.makeInstr<gologpp::Block>(parent_scope, seq);
+
             bool bool_value;
             if (!(getBoolValue(new_condition, bool_value) && !bool_value)) {
-                trans.insert(std::make_pair(new_condition, new_subprogram));
+                out.emplace_back(new_condition, new_subprogram);
             }
         }
 
-        // Second part: {(F(δ1) ∧ ϕ, δ'2) | (ϕ,δ'2) ∈ T(δ2,a)}
-        for (auto [condition, subprogram] : T(rest_block, action)) {
-            gologpp::Expression* first_expr = F(first_instruction);
-            gologpp::Expression* new_condition = createBooleanOperation(first_expr, gologpp::BooleanOperator::AND, condition);
+        // Part 2: transitions from rest, when first is final
+        for (auto [condition, subprogram] : T(rest_block, target_action, factory, cache)) {
+            gologpp::Expression* new_condition = createBooleanOperation(gologpp::BooleanOperator::AND, F_first, condition, factory);
 
-            // Skip the transition if the condition evaluates to false
             bool bool_value;
             if (!(getBoolValue(new_condition, bool_value) && !bool_value)) {
-                trans.insert(std::make_pair(new_condition, subprogram));
+                out.emplace_back(new_condition, subprogram);
             }
         }
+
+        return out;
     }
-    else if (const auto* choose = dynamic_cast<const gologpp::Choose*>(instruction)) {
-        // For nondeterministic branch, T(δ1|δ2,a) = T(δ1,a) ∪ T(δ2,a)
+
+    // Choose
+    if (const auto* choose = dynamic_cast<const gologpp::Choose*>(instruction)) {
         for (const auto& alternative : choose->alternatives()) {
-            auto branch_T = T(alternative.get(), action);
-            trans.insert(branch_T.begin(), branch_T.end());
+            auto branch_T = T(alternative.get(), target_action, factory, cache);
+            out.insert(out.end(), branch_T.begin(), branch_T.end());
         }
+        return out;
     }
-    else if (const auto* star = dynamic_cast<const gologpp::Star*>(instruction)) {
-        // For nondeterministic iteration, T(δ*,a) = {(¬F(δ) ∧ ϕ, δ';δ*) | (ϕ,δ') ∈ T(δ,a)}
-        const gologpp::Instruction* body = &star->statement();
-        
-        for (auto [condition, subprogram] : T(body, action)) {
-            gologpp::Expression* first_expr = new gologpp::Negation(F(body));
-            gologpp::Expression* new_condition = createBooleanOperation(first_expr, gologpp::BooleanOperator::AND, condition);
-            gologpp::Scope* parent_scope = const_cast<gologpp::Scope*>(&star->scope().parent_scope());
-            gologpp::Instruction* new_subprogram = new gologpp::Block(parent_scope, {const_cast<gologpp::Instruction*>(subprogram), const_cast<gologpp::Instruction*>(instruction)});
 
-            // Skip the transition if the condition evaluates to false
+    // Star
+    if (const auto* star = dynamic_cast<const gologpp::Star*>(instruction)) {
+        const gologpp::Instruction* body = &star->statement();
+
+        for (auto [condition, subprogram] : T(body, target_action, factory, cache)) {
+            gologpp::Expression* first_expr = factory.makeExpr<gologpp::Negation>(F(body, factory, cache));
+            gologpp::Expression* new_condition = createBooleanOperation(gologpp::BooleanOperator::AND, first_expr, condition, factory);
+            gologpp::Scope* parent_scope = const_cast<gologpp::Scope*>(&star->scope().parent_scope());
+            
+            std::vector<gologpp::Instruction*> seq;
+            seq.push_back(subprogram);
+            seq.push_back(const_cast<gologpp::Instruction*>(instruction));
+            gologpp::Instruction* new_subprogram = factory.makeInstr<gologpp::Block>(parent_scope, seq);
+            
             bool bool_value;
             if (!(getBoolValue(new_condition, bool_value) && !bool_value)) {
-                trans.insert(std::make_pair(new_condition, new_subprogram));
+                out.emplace_back(new_condition, new_subprogram);
             }
         }
-    }
-    else if (const auto* pick = dynamic_cast<const gologpp::Pick*>(instruction)) {
-        // TODO (maybe)
-    }
-    else if (const auto* test = dynamic_cast<const gologpp::Test*>(instruction)) {
-        // For test, T(ϕ?,a) = {}
-        // Do nothing
-    }
-    else if (const auto* action_call = dynamic_cast<const gologpp::Reference<gologpp::Action>*>(instruction)) {
-        // For matching atomic actions, T(a,a) = {(Poss(a), nil)}
-        if (action_call->to_string("") == action->to_string("")) {
-            gologpp::Instruction* nil_instruction = new gologpp::Test(new gologpp::Value(gologpp::type<gologpp::BoolType>(), true));
-            gologpp::Action& target_action = *action->target();
-            auto action_precondition = &target_action.precondition();
 
-            // Skip the transition if the condition evaluates to false
-            bool bool_value;
-            if (!(getBoolValue(action_precondition, bool_value) && !bool_value)) {
-                trans.insert(std::make_pair(action_precondition, nil_instruction));
-            }
-        }
+        return out;
     }
 
-    return trans;
+    // Pick (not supported for now)
+    if (dynamic_cast<const gologpp::Pick*>(instruction)) {
+        throw std::runtime_error("Pick is not supported in this implementation.");
+    }
+
+    throw std::runtime_error("T: Unsupported instruction type.");
+}
+
+Transitions T(const gologpp::Instruction* instruction, const gologpp::Reference<gologpp::Action>* target_action, NodeFactory& factory, SemCache& cache) {
+    SemCache::Key key{instruction, target_action};
+    auto it = cache.Tcache.find(key);
+    if (it != cache.Tcache.end())
+        return it->second;
+
+    auto res = T_impl(instruction, target_action, factory, cache);
+    cache.Tcache.emplace(key, res);
+    return res;
 }

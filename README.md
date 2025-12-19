@@ -55,35 +55,3 @@ git clone git@github.com:GianmarcoDIAG/LydiaSyft.git --recursive
 
 Follow the instructions in their README.md to complete the installation
 
-## Build
-
-```
-mkdir build && cd build
-cmake .. && make -j4
-```
-
-If you get an error due to `-leclipse` you can fix it with
-
-```
-cp {your/eclipse/path}/lib/x_86_84/libeclipse.so /usr/local/lib/
-```
-
-## Execute
-
-```
-./GologExecutable
-```
-
-
-
-
-
-
-
-
-
-
-
-
-
-

@@ -4,8 +4,7 @@
 * as in [De Giacomo, Parretti, and Zhu, ECAI 2023]
 */
 
-#ifndef DOMAIN_H
-#define DOMAIN_H
+#pragma once
 
 #include<string>
 #include<fstream>
@@ -299,6 +298,3 @@ class Domain {
         CUDD::BDD invariant_to_bdd(std::size_t automaton_id, const Invariant& inv) const;
         std::pair<std::unordered_set<int>, std::unordered_set<int>> get_invariant_vars(const std::vector<std::string>& inv_vec, const std::unordered_map<std::string, int>& var_to_id) const;
 };
-
-
-#endif

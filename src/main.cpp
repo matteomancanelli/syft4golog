@@ -4,9 +4,6 @@
 #include <vector>
 #include <memory>
 
-#include "synthesis/header/VarMgr.h"
-#include "utils/string_utilities.h"
-
 #include "parser/parser.h"
 
 #include "model/action.h"
@@ -21,27 +18,10 @@
 #include "transitions.h"
 #include "utilities.h"
 
-#include "domain.h"
 extern "C" int yylex() { return 0; } ;
 
 int main(int argc, char ** argv) {
     try {
-        // test correct inclusion of LydiaSyft's functionalities
-        std::string ts = Syft::to_upper_copy("hello, world!");
-        std::cout << "Uppercase string: " << ts << std::endl;
-
-        // test domain
-        std::shared_ptr<Syft::VarMgr> var_mgr = std::make_shared<Syft::VarMgr>();
-        std::string domain_file = "./../../examples/fond/domain.pddl";
-        std::string init_file = "./../../examples/fond/test1.pddl";
-
-        Domain domain(var_mgr, domain_file, init_file);
-        Syft::SymbolicStateDfa domain_sdfa = domain.to_symbolic();
-        domain.print_domain();
-
-        // Parse the Golog program
-        //std::string filename = "../examples/robot_program.gpp";
-        //std::string filename = "../examples/minimal_example.gpp";
         std::string filename = "../examples/star_example.gpp";
 
         std::cout << "Parsing program from file..." << std::endl;
@@ -56,14 +36,36 @@ int main(int argc, char ** argv) {
             return 1;
         }
         
+        NodeFactory factory;
+        factory.initSingletons();
+        SemCache cache;
+
+        std::cerr << "Computing the syntactic closure..." << std::endl;
         // Compute the syntactic closure
         const gologpp::Instruction& definition = mainproc->definition();
-        auto syntactic_closure = computeSyntacticClosure(&definition);
+        InstructionSet syntactic_closure;
+        computeSyntacticClosure(&definition, syntactic_closure, factory);
+        std::cerr << "Syntactic closure computed!" << std::endl;
 
-        std::cout << "Syntactic closure of the main procedure:" << std::endl;
-        std::cout << std::endl;
+        //std::vector<const gologpp::Instruction*> nodes(syntactic_closure.begin(), syntactic_closure.end());
+        std::vector<const gologpp::Instruction*> nodes;
+        nodes.reserve(syntactic_closure.size());
+        for (const auto* instruction : syntactic_closure) {
+            nodes.push_back(instruction);
+        }
 
-        
+        std::unordered_map<const gologpp::Instruction*, int> id;
+        id.reserve(nodes.size());
+        for (int i = 0; i < (int) nodes.size(); ++i) 
+            id[nodes[i]] = i;
+
+        // Choose a target action for demo: "A"
+        //auto actions = gpp.actions(); // if your API differs, adjust
+        //gologpp::Action* A = findActionByName(actions, "A");
+        //if (!A) {
+        //    std::cout << "Action A not found; transitions demo will be empty.\n";
+        //}
+
         // Create or find action 'A' for testing transition relations
         std::cout << "Creating action A..." << std::endl;
         const gologpp::Reference<gologpp::Action>* action_ref = nullptr;
@@ -72,7 +74,7 @@ int main(int argc, char ** argv) {
         if (existing_action) {
             std::cout << "Found existing action A in global scope" << std::endl;
             action_ref = existing_action->make_ref(std::vector<gologpp::Expression*>{});
-        } 
+        }
         else {
             std::cout << "No existing action found, creating a new one" << std::endl;
             
@@ -87,34 +89,16 @@ int main(int argc, char ** argv) {
             action_ref = action->make_ref(std::vector<gologpp::Expression*>{});
         }
         
-
         // Iterate through each instruction in the syntactic closure
         int i = 0;
-        for (const auto* instruction : syntactic_closure) {
-            // Print the instruction
-            std::cout << "Subprogram " << i << std::endl;
-            std::cout << instruction->to_string("") << std::endl;
+        std::cout << "Iterating through syntactic closure with " << syntactic_closure.size() << " instructions." << std::endl;
 
-            // Compute and print its final condition
-            std::cout << "Final " << i << std::endl;
-            std::cout << F(instruction)->to_string("") << std::endl;
-            std::cout << std::endl;
 
-            // Compute and print all possible transitions
-            std::cout << "Trans " << i << std::endl;
-            auto transitions = T(instruction, action_ref);
-            for (const auto& transition : transitions) {
-                std::cout << "    Transition: " << transition.first->to_string("") << " , " << transition.second->to_string("") << std::endl;
-            }
 
-            std::cout << "----------" << std::endl;
-            i++;
-        }
+        return 0;
         
     } catch (const std::exception& e) {
         std::cerr << "Error: " << e.what() << std::endl;
         return 1;
     }
-
-    return 0;
 }

@@ -1,5 +1,4 @@
-#ifndef SYNTACTIC_CLOSURE_H
-#define SYNTACTIC_CLOSURE_H
+#pragma once
 
 #include <set>
 #include <vector>
@@ -13,11 +12,10 @@
 #include "model/effect_axiom.h"
 
 #include "utilities.h"
+#include "node_factory.h"
 
-/** 
+/**
  * Computes the syntactic closure of a given program instruction.
  * The syntactic closure is the set of all subprograms that can be reached during execution.
  */
-InstructionSet computeSyntacticClosure(const gologpp::Instruction* instruction);
-
-#endif // SYNTACTIC_CLOSURE_H
+void computeSyntacticClosure(const gologpp::Instruction* instruction, InstructionSet& syntactic_closure, NodeFactory& factory);

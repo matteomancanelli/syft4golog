@@ -1,0 +1,99 @@
+symbol domain floor = {f1, f2, f3}
+symbol domain pos = {p1, p2, p3, p4}
+symbol domain elevator = {e1, e2}
+symbol domain coin = {c1, c2, c3}
+
+bool fluent dec_f(floor a, floor b) {
+	initially:
+		(f2, f1) = true;
+		(f3, f2) = true;
+}
+
+bool fluent dec_p(pos a, pos b) {
+	initially:
+		(p2, p1) = true;
+		(p3, p2) = true;
+		(p4, p3) = true;
+}
+
+bool fluent in(elevator e, floor f) {
+	initially:
+		(e1, f1) = true;
+		(e2, f2) = true;
+}
+
+bool fluent shaft(elevator e, pos p) {
+	initially:
+		(e1, p1) = true;
+		(e2, p1) = true;
+}
+
+bool fluent at(floor f, pos p) {
+	initially:
+		(f1, p1) = true;
+}
+
+bool fluent inside(elevator e) {
+	initially:
+		// nobody inside initially
+}
+
+bool fluent gate(floor f, pos p) {
+	initially:
+		(f2, p4) = true;
+		(f3, p2) = true;
+}
+
+bool fluent coin_at(coin c, floor f, pos p) {
+	initially:
+		(c1, f2, p1) = true;
+		(c2, f3, p1) = true;
+		(c3, f1, p3) = true;
+}
+
+bool fluent have(coin c) {
+	initially:
+		// nothing initially
+}
+
+action go_up(elevator e, floor f, floor nf) {
+	precondition:
+		dec_f(nf, f) & in(e, f)
+
+	effect:
+		in(e, nf) = true;
+		in(e, f) = false;
+}
+
+
+action step_in(elevator e, floor f, pos p) {
+	precondition:
+		at(f, p) & in(e, f) & shaft(e, p)
+
+	effect:
+		inside(e) = true;
+		at(f, p) = false;
+}
+
+
+action collect(coin c, floor f, pos p) {
+	precondition:
+		coin_at(c, f, p) & at(f, p)
+
+	effect:
+		have(c) = true;
+		coin_at(c, f, p) = false;
+}
+
+bool function goal() =
+	have(c1) & have(c2) & have(c3)
+
+
+procedure main() {
+	while (!goal()) {
+		pick (elevator e in {e1, e2})
+			pick (floor f in {f1, f2, f3})
+				pick (floor nf in {f1, f2, f3})
+					go_up(e, f, nf);
+	}
+}
