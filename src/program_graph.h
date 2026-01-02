@@ -12,6 +12,7 @@
 #include "model/effect_axiom.h"
 
 #include "synthesis/header/VarMgr.h"
+#include "synthesis/header/automata/SymbolicStateDfa.h"
 /**
  * \brief A program graph with explicit states and symbolic transitions
  */
@@ -22,10 +23,57 @@ class ExplicitStateProgramGraph {
 
         std::size_t initial_state_;
         std::size_t state_count_;
-        std::vector<std::size_t> final_states_;
+        std::vector<CUDD::BDD> final_states_;
         std::vector<CUDD::ADD> transition_function_;
 
         ExplicitStateProgramGraph(std::shared_ptr<Syft::VarMgr> var_mgr);
+
+        /**
+         * \brief create state variables and ID for symbolic DFA of program graph
+         */
+        std::pair<std::size_t, std::size_t> create_state_variables() const;
+
+
+        /**
+         * \brief transform an explicit state into binary representation
+         * 
+         * \param state the state to be transformed into binary
+         * \param bit_count the number of bits in its binary representation
+         */
+        std::vector<int> state_to_binary(
+            std::size_t state,
+            std::size_t bit_count
+        ) const;
+
+        /**
+         * \brief transform an explicit state into the BDD of its binary representation
+         * 
+         * \param automaton_id the ID of the automaton of the program graph
+         * \param state the state whose BDD is being computed
+         */
+        CUDD::BDD state_to_bdd(
+            std::size_t automaton_id,
+            std::size_t state
+        ) const;
+
+        /**
+         * \brief construct a BDD that decides when the program graph is in a final configuration
+         * 
+         * \param automaton_id the ID of the automaton of the program graph
+         */
+        CUDD::BDD final_states_to_bdd(
+            std::size_t automaton_id
+        ) const;
+
+        /** 
+         * \brief construct the transition function of the symbolic representation of the program graph
+         * 
+         * \param automaton_id the ID of the automaton of the program graph
+         */
+        std::vector<CUDD::BDD> symbolic_transition_function(
+            std::size_t automaton_id
+        ) const; 
+
 
     public:
         /**
@@ -54,9 +102,9 @@ class ExplicitStateProgramGraph {
         std::size_t state_count() const;
 
         /**
-         * \brief Returns the list of indices of final states of the program graph
+         * \brief Returns the final states condition for each state in the program graph
          */
-        std::vector<std::size_t> final_states() const;
+        std::vector<CUDD::BDD> final_states() const;
 
         /**
          * \brief Returns the transition function of the program graph as a vector of ADDs
