@@ -20,7 +20,7 @@ Syft::SymbolicStateDfa BaseGologSynthesizer::compose(
 ) const {
   // ASSUMPTION. The Order of the variables is:
   // (F, Act, React, Z_{δ}), where δ is the Golog program
-  // i.e.: the DFA of the domain is created before DFA of the Golog program
+  // THAT IS: the DFA of the domain is created before DFA of the Golog program
   std::size_t domain_dfa_id = domain_dfa.automaton_id();
   std::size_t golog_dfa_id = golog_dfa.automaton_id();
   std::vector<std::size_t> automaton_ids = {domain_dfa_id, golog_dfa_id};
@@ -67,11 +67,11 @@ Syft::SymbolicStateDfa BaseGologSynthesizer::compose(
   // 4. final states
   final_states = final_states * golog_dfa.final_states();
 
-  std::size_t agent_error_index = var_mgr_->get_state_variables(domain_dfa.automaton_id()).size() - 2;
-  std::size_t env_error_index = var_mgr_->get_state_variables(domain_dfa.automaton_id()).size() - 1;
+  std::size_t agent_error_index = var_mgr_->state_variables(domain_dfa.automaton_id()).size() - 2;
+  std::size_t env_error_index = var_mgr_->state_variables(domain_dfa.automaton_id()).size() - 1;
 
-  CUDD::BDD agent_error_bdd = var_mgr_->get_state_variables(domain_dfa.automaton_id()).at(agent_error_index);
-  CUDD::BDD env_error_bdd = var_mgr_->get_state_variables(domain_dfa.automaton_id()).at(env_error_index);
+  CUDD::BDD agent_error_bdd = var_mgr_->state_variables(domain_dfa.automaton_id()).at(agent_error_index);
+  CUDD::BDD env_error_bdd = var_mgr_->state_variables(domain_dfa.automaton_id()).at(env_error_index);
 
   final_states = (!agent_error_bdd) * (env_error_bdd + final_states);
 
