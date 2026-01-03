@@ -17,10 +17,13 @@
 #include "synthesis/header/VarMgr.h"
 #include "synthesis/header/automata/SymbolicStateDfa.h"
 #include "synthesis/header/Synthesizer.h"
+#include "synthesis/header/game/Reachability.hpp"
+
+#include "program_graph.h"
 
 class BaseGologSynthesizer{
 
-    private:
+    protected:
         std::shared_ptr<Syft::VarMgr> var_mgr_;
         std::shared_ptr<Domain> domain_;
         std::shared_ptr<gologpp::Procedure> golog_program_;
