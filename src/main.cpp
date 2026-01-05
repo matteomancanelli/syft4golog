@@ -93,8 +93,29 @@ int main(int argc, char ** argv) {
         int i = 0;
         std::cout << "Iterating through syntactic closure with " << syntactic_closure.size() << " instructions." << std::endl;
 
+        for (const auto* instruction : syntactic_closure) {
+            // Print the instruction
+            std::cout << "Subprogram " << i << std::endl;
+            std::cout << instruction->to_string("") << std::endl;
 
+            // Compute and print its final condition
+            std::cout << "Final " << i << std::endl;
+            std::cout << F(instruction, factory, cache)->to_string("") << std::endl;
+            std::cout << std::endl;
 
+            // Compute and print all possible transitions
+            std::cout << "Trans " << i << std::endl;
+            auto transitions = T(instruction, action_ref, factory, cache);
+            for (const auto& transition : transitions) {
+                std::cout << "\tTransition: " << std::endl;
+                std::cout << "\t\tCondition: " << transition.first->to_string("") << std::endl;
+                std::cout << "\t\tSubprogram: " << transition.second->to_string("") << std::endl;
+            }
+
+            std::cout << "----------" << std::endl;
+            i++;
+        }
+        
         return 0;
         
     } catch (const std::exception& e) {
