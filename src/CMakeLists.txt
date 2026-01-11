@@ -6,6 +6,8 @@ set(SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/guide_stub.c
     ${CMAKE_CURRENT_SOURCE_DIR}/utilities.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/domain.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/propositional_logic.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/golog_program.cpp
 )
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR} ${EXT_INCLUDE_PATH})
