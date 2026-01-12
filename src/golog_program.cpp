@@ -137,7 +137,7 @@ void GologProgramNodeToString::visit(const GologProgramTest& x) {
     std::ostringstream s;
     auto arg = x.arg_;
     PropositionalLogicNodeToStringVisitor v;
-    s << "(" << v.apply(*arg) << ")?";
+    s << "[" << v.apply(*arg) << "]?";
     result_ = s.str();
 } 
 

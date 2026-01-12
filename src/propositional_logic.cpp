@@ -146,7 +146,7 @@ void PropositionalLogicNodeToStringVisitor::visit(const PropositionalLogicConjun
     s << "(";
     s << apply(**args.begin());
     for (auto it = ++(args.begin()); it != args.end(); ++it) {
-        s << " & " << apply(**it);
+        s << " && " << apply(**it);
     }
     s << ")";
     result_ = s.str();
@@ -158,7 +158,7 @@ void PropositionalLogicNodeToStringVisitor::visit(const PropositionalLogicDisjun
     s << "(";
     s << apply(**args.begin());
     for (auto it = ++(args.begin()); it != args.end(); ++it) {
-        s << " | " << apply(**it);
+        s << " || " << apply(**it);
     }
     s << ")";
     result_ = s.str();

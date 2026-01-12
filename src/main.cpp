@@ -14,15 +14,13 @@
 #include "model/value.h"
 #include "model/effect_axiom.h"
 
-#include "syntactic_closure.h"
-#include "transitions.h"
-#include "utilities.h"
-
 #include"synthesis/header/VarMgr.h"
 #include "domain.h"
 
 #include"propositional_logic.hpp"
 #include"golog_program.hpp"
+#include"golog_driver.hpp"
+#include"scanner_internal.hpp"
 
 extern "C" int yylex() { return 0; } ;
 
@@ -191,51 +189,63 @@ int main(int argc, char ** argv) {
     // std::cout << "####################################" << std::endl;
 
     // test for Golog programs
-    std::cout << "#########################################" << std::endl;
-    std::cout << "######## TEST FOR GOLOG PROGRAMS ########" << std::endl;
-    std::cout << "#########################################" << std::endl;
+    // std::cout << "#########################################" << std::endl;
+    // std::cout << "######## TEST FOR GOLOG PROGRAMS ########" << std::endl;
+    // std::cout << "#########################################" << std::endl;
 
-    GologProgramNodeToString v;
+    // GologProgramNodeToString v;
 
-    std::cout << "TEST 1: nil" << std::endl;
-    GologProgramNil nil;
-    std::cout << "STRING: " << v.apply(nil) << std::endl;
-    std::cout << "##########################" << std::endl;
+    // std::cout << "TEST 1: nil" << std::endl;
+    // GologProgramNil nil;
+    // std::cout << "STRING: " << v.apply(nil) << std::endl;
+    // std::cout << "##########################" << std::endl;
 
-    std::cout << "TEST 2: und" << std::endl;
-    GologProgramUnd und;
-    std::cout << "STRING: " << v.apply(und) << std::endl;
-    std::cout << "##########################" << std::endl;
+    // std::cout << "TEST 2: und" << std::endl;
+    // GologProgramUnd und;
+    // std::cout << "STRING: " << v.apply(und) << std::endl;
+    // std::cout << "##########################" << std::endl;
 
-    std::cout << "TEST 3: action" << std::endl;
-    GologProgramAction act("nop");
-    std::cout << "STRING: " << v.apply(act) << std::endl;
-    std::cout << "##########################" << std::endl;
+    // std::cout << "TEST 3: action" << std::endl;
+    // GologProgramAction act("nop");
+    // std::cout << "STRING: " << v.apply(act) << std::endl;
+    // std::cout << "##########################" << std::endl;
 
-    std::cout << "TEST 4: test" << std::endl;
-    PropositionalLogicAtom a1("on_table_b1"), a2("on_table_b2");
-    std::unordered_set<PropositionalLogicNode*, PropositionalLogicHash, PropositionalLogicEquals> c = { &a1, &a2 };
-    PropositionalLogicConjunction t(&c);
-    GologProgramTest test(&t);
-    std::cout << "STRING: " << v.apply(test) << std::endl;
-    std::cout << "##########################" << std::endl;
+    // std::cout << "TEST 4: test" << std::endl;
+    // PropositionalLogicAtom a1("on_table_b1"), a2("on_table_b2");
+    // std::unordered_set<PropositionalLogicNode*, PropositionalLogicHash, PropositionalLogicEquals> c = { &a1, &a2 };
+    // PropositionalLogicConjunction t(&c);
+    // GologProgramTest test(&t);
+    // std::cout << "STRING: " << v.apply(test) << std::endl;
+    // std::cout << "##########################" << std::endl;
     
-    std::cout << "TEST 5: sequence" << std::endl;
-    std::vector<GologProgramNode*> vv = {&act, &test};
-    GologProgramSequence seq(&vv);
-    std::cout << "STRING: " << v.apply(seq) << std::endl;
-    std::cout << "##########################" << std::endl;
+    // std::cout << "TEST 5: sequence" << std::endl;
+    // std::vector<GologProgramNode*> vv = {&act, &test};
+    // GologProgramSequence seq(&vv);
+    // std::cout << "STRING: " << v.apply(seq) << std::endl;
+    // std::cout << "##########################" << std::endl;
 
-    std::cout << "TEST 6: choice" << std::endl;
-    std::unordered_set<GologProgramNode*, GologProgramHash, GologProgramEquals> ss = {&act, &test};
-    GologProgramChoice ch(&ss);
-    std::cout << "STRING: " << v.apply(ch) << std::endl;
-    std::cout << "##########################" << std::endl;
+    // std::cout << "TEST 6: choice" << std::endl;
+    // std::unordered_set<GologProgramNode*, GologProgramHash, GologProgramEquals> ss = {&act, &test};
+    // GologProgramChoice ch(&ss);
+    // std::cout << "STRING: " << v.apply(ch) << std::endl;
+    // std::cout << "##########################" << std::endl;
 
-    std::cout << "TEST 7: iteration" << std::endl;
-    GologProgramIteration it(&act);
-    std::cout << "STRING: " << v.apply(it) << std::endl;
-    std::cout << "##########################" << std::endl;
+    // std::cout << "TEST 7: iteration" << std::endl;
+    // GologProgramIteration it(&act);
+    // std::cout << "STRING: " << v.apply(it) << std::endl;
+    // std::cout << "##########################" << std::endl;
+
+    // PARSER TESTS
+    GologProgramNodeToString v;
+    auto driver = std::make_shared<GologDriver>(); 
+ 
+    // std::string program = "nop;[on_table_b1 && on_table_b2]?";
+    std::string program = "pick_up_from_table_b1;(nop|put_down_b1);[on_table_b1]?";
+    std::stringstream program_stream(program);
+    driver->parse(program_stream);
+    auto parsed_program = driver->get_result();
+
+    std::cout << "STRING: " << v.apply(*parsed_program) << std::endl;
 
     // OLD TESTS
     // try {

@@ -21,8 +21,8 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 file(COPY ${CMAKE_SOURCE_DIR}/examples DESTINATION ${CMAKE_BINARY_DIR})
 
 # Find packages
-set(FLEX_LIBRARIES "")
-set(BISON_LIBRARIES "")
+find_package(FLEX REQUIRED)
+find_package(BISON REQUIRED)
 find_package(cudd REQUIRED)
 find_package(mona REQUIRED)
 find_package(spot REQUIRED)

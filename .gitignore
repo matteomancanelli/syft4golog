@@ -1,3 +1,15 @@
+# build/vscode generated files
 _*/
 .vscode/
 build/
+
+# src files generated with flex/bison
+src/lex.yy.cc
+src/location.hh
+src/parser.tab.cc
+src/parser.tab.hh
+src/position.hh
+src/stack.hh
+
+# gianmarco's private files
+notes.txt
