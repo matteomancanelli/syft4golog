@@ -1,6 +1,3 @@
-[submodule "submodules/gologpp"]
-	path = submodules/gologpp
-	url = https://github.com/matteomancanelli/gologpp.git
 [submodule "submodules/LydiaSyft"]
 	path = submodules/LydiaSyft
 	url = git@github.com:GianmarcoDIAG/LydiaSyft.git
