@@ -51,20 +51,6 @@ set(LYDIA_THIRD_PARTY_INCLUDE_PATH
     "/usr/include"
 )
 
-# Set gologpp-related variables
-set(GOLOGPP_DIR ${PROJECT_SOURCE_DIR}/submodules/gologpp)
-set(FLEX_LIBRARIES "" CACHE INTERNAL "Explicitly empty to prevent linking with libfl")
-set(BISON_LIBRARIES "" CACHE INTERNAL "Explicitly empty to prevent linking with Bison")
-add_subdirectory(${GOLOGPP_DIR})
-set(GOLOGPP_LIBRARIES ${GOLOGPP_DIR}/src)
-
-# Include paths for gologpp
-set(GOLOGPP_INCLUDE_DIRS
-    ${GOLOGPP_DIR}
-    ${GOLOGPP_DIR}/src
-    ${GOLOGPP_DIR}/src/parser
-)
-
 # set libraries for LydiaSyft
 set(UTILS_INCLUDE_PATH 
     ${LYDIASYFT_INCLUDE_DIR}/utils)
@@ -93,7 +79,6 @@ set(EXT_INCLUDE_PATH
     ${UTILS_INCLUDE_PATH}
     ${SYNTHESIS_INCLUDE_PATH}
     ${PARSER_INCLUDE_PATH}
-    ${GOLOGPP_INCLUDE_DIRS}
     ${CUDD_INCLUDE_DIRS}
     ${MONA_MEM_INCLUDE_DIRS}
     ${MONA_BDD_INCLUDE_DIRS}

@@ -4,19 +4,9 @@
 #include <vector>
 #include <memory>
 
-#include "parser/parser.h"
-
-#include "model/action.h"
-#include "model/formula.h"
-#include "model/reference.h"
-#include "model/procedural.h"
-#include "model/types.h"
-#include "model/value.h"
-#include "model/effect_axiom.h"
-
 #include"synthesis/header/VarMgr.h"
-#include "domain.h"
 
+#include "domain.h"
 #include"propositional_logic.hpp"
 #include"golog_program.hpp"
 #include"golog_driver.hpp"

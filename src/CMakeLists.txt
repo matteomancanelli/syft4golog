@@ -34,9 +34,6 @@ target_link_libraries(GologExecutable
     ${PARSER_LIB_NAME} # LydiaSyft
     ${SYNTHESIS_LIB_NAME} # LydiaSyft
     ${SPOT_LIBRARIES}
-    golog++ 
-    parsegolog++ 
-    readylog++ 
 )
 
 # Install the header files
