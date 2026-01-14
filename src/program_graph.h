@@ -3,16 +3,11 @@
 
 #include<memory>
 
-#include "model/action.h"
-#include "model/formula.h"
-#include "model/reference.h"
-#include "model/procedural.h"
-#include "model/types.h"
-#include "model/value.h"
-#include "model/effect_axiom.h"
-
 #include "synthesis/header/VarMgr.h"
 #include "synthesis/header/automata/SymbolicStateDfa.h"
+
+#include "golog_program.hpp"
+
 /**
  * \brief A program graph with explicit states and symbolic transitions
  */
@@ -24,6 +19,7 @@ class ExplicitStateProgramGraph {
         std::size_t initial_state_;
         std::size_t state_count_;
         std::vector<CUDD::BDD> final_states_;
+        std::vector<CUDD::BDD> continuation_function_;
         std::vector<CUDD::ADD> transition_function_;
 
         ExplicitStateProgramGraph(std::shared_ptr<Syft::VarMgr> var_mgr);
@@ -84,7 +80,7 @@ class ExplicitStateProgramGraph {
          */
         static ExplicitStateProgramGraph from_golog_program(
             std::shared_ptr<Syft::VarMgr> var_mgr,
-            const gologpp::Procedure& golog_program);
+            const GologProgramNode& golog_program);
 
         /**
          * \brief Returns the variable manager
@@ -112,6 +108,11 @@ class ExplicitStateProgramGraph {
          * The ADD in index \a i represents the transition function for state \a i
          */
         std::vector<CUDD::ADD> transition_function() const;
+
+        /**
+         * \brief Returns the continutation function for each state in the program graph
+         */
+        std::vector<CUDD::BDD> continuation_function() const; 
 
         /**
          * \brief Saves transition function and final states of the program graph in a .dot file

@@ -22,6 +22,10 @@ std::vector<CUDD::BDD> ExplicitStateProgramGraph::final_states() const {
     return final_states_;
 }
 
+std::vector<CUDD::BDD> ExplicitStateProgramGraph::continuation_function() const {
+    return continuation_function_;
+}
+
 std::vector<CUDD::ADD> ExplicitStateProgramGraph::transition_function() const {
     return transition_function_;
 }
