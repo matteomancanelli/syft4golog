@@ -4,8 +4,8 @@
 
 struct Golog_YYSTYPE {
     // Information that can be read by the parser
-    GologProgramNode* program;
-    PropositionalLogicNode* formula;
+    golog_ptr program;
+    formula_ptr formula;
     std::string symbol_name;
     // Constructor
     Golog_YYSTYPE() = default;

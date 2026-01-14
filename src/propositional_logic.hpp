@@ -27,25 +27,29 @@ enum PropositionalLogicTypeID {
 };
 
 class PropositionalLogicNodeVisitor;
+class PropositionalLogicNode;
+
+typedef std::shared_ptr<const PropositionalLogicNode> formula_ptr;
+typedef std::unordered_set<std::shared_ptr<const PropositionalLogicNode>> formula_set;
 
 // abstract class for AST nodes representing propositional formulas
 class PropositionalLogicNode {
 
     public:
         virtual ~PropositionalLogicNode() = default;
-        virtual void accept(PropositionalLogicNodeVisitor& v) = 0;
+        virtual void accept(PropositionalLogicNodeVisitor& v) const = 0;
         virtual std::size_t hash() const = 0;
-        virtual bool equals(const PropositionalLogicNode& x) const = 0;
+        virtual bool equals(const formula_ptr&) const = 0;
         virtual std::size_t get_type_id() const = 0;
 
 };
 
 struct PropositionalLogicHash {
-    std::size_t operator()(const PropositionalLogicNode* f) const {return f -> hash();}
+    std::size_t operator()(const formula_ptr& f) const {return f -> hash();}
 };
 
 struct PropositionalLogicEquals {
-    bool operator()(const PropositionalLogicNode* a, const PropositionalLogicNode* b) const {return a->equals(*b);}
+    bool operator()(const formula_ptr& a, const formula_ptr& b) const {return a->equals(b);}
 };
 
 // Concrete AST nodes representing propositional formulas
@@ -55,9 +59,9 @@ class PropositionalLogicTrue : public PropositionalLogicNode {
     public:
         const static PropositionalLogicTypeID type_id_ = PropositionalLogicTypeID::t_ProposositionalLogicTrue;
         PropositionalLogicTrue() {}
-        void accept(PropositionalLogicNodeVisitor& v) override;
+        void accept(PropositionalLogicNodeVisitor& v) const override;
         std::size_t hash() const override;
-        bool equals(const PropositionalLogicNode& x) const override;
+        bool equals(const formula_ptr& x) const override;
         std::size_t get_type_id() const;
 };
 
@@ -66,9 +70,9 @@ class PropositionalLogicFalse : public PropositionalLogicNode {
     public:
         const static PropositionalLogicTypeID type_id_ = PropositionalLogicTypeID::t_ProposositionalLogicFalse;
         PropositionalLogicFalse() {}
-        void accept(PropositionalLogicNodeVisitor& v) override;
+        void accept(PropositionalLogicNodeVisitor& v) const override;
         std::size_t hash() const override;
-        bool equals(const PropositionalLogicNode& x) const override;
+        bool equals(const formula_ptr& x) const override;
         std::size_t get_type_id() const;
 };
 
@@ -78,9 +82,9 @@ class PropositionalLogicAtom : public PropositionalLogicNode {
         const static PropositionalLogicTypeID type_id_ = PropositionalLogicTypeID::t_ProposositionalLogicAtom;
         std::string name_ = "";        
         PropositionalLogicAtom(const std::string& x): name_(x) {}
-        void accept(PropositionalLogicNodeVisitor& v) override;
+        void accept(PropositionalLogicNodeVisitor& v) const override;
         std::size_t hash() const override;
-        bool equals(const PropositionalLogicNode& x) const override;
+        bool equals(const formula_ptr& x) const override;
         std::size_t get_type_id() const;
 };
 
@@ -88,11 +92,11 @@ class PropositionalLogicAtom : public PropositionalLogicNode {
 class PropositionalLogicNegation : public PropositionalLogicNode {
     public:
         const static PropositionalLogicTypeID type_id_ = PropositionalLogicTypeID::t_ProposositionalLogicNegation;
-        PropositionalLogicNode* arg_;
-        PropositionalLogicNegation(PropositionalLogicNode* x): arg_(x) {}
-        void accept(PropositionalLogicNodeVisitor& v) override;
+        formula_ptr arg_;
+        PropositionalLogicNegation(const formula_ptr& x): arg_(x) {}
+        void accept(PropositionalLogicNodeVisitor& v) const override;
         std::size_t hash() const override;
-        bool equals(const PropositionalLogicNode& x) const override;
+        bool equals(const formula_ptr& x) const override;
         std::size_t get_type_id() const;
 
 };
@@ -100,24 +104,24 @@ class PropositionalLogicNegation : public PropositionalLogicNode {
 // Conjunction
 class PropositionalLogicConjunction : public PropositionalLogicNode {
     public:
-        std::unordered_set<PropositionalLogicNode*, PropositionalLogicHash, PropositionalLogicEquals> args_;
+        formula_set args_;
         const static PropositionalLogicTypeID type_id_ = PropositionalLogicTypeID::t_ProposositionalLogicConjunction;
-        PropositionalLogicConjunction(const std::unordered_set<PropositionalLogicNode*, PropositionalLogicHash, PropositionalLogicEquals>* c): args_(*c) {}
-        void accept(PropositionalLogicNodeVisitor& v) override;
+        PropositionalLogicConjunction(const formula_set& c): args_(c) {}
+        void accept(PropositionalLogicNodeVisitor& v) const override;
         std::size_t hash() const override;
-        bool equals(const PropositionalLogicNode& x) const override;
+        bool equals(const formula_ptr& x) const override;
         std::size_t get_type_id() const;
 };
 
 // Disjunction
 class PropositionalLogicDisjunction: public PropositionalLogicNode {
     public:
-        std::unordered_set<PropositionalLogicNode*, PropositionalLogicHash, PropositionalLogicEquals> args_;
+        formula_set args_;
         const static PropositionalLogicTypeID type_id_ = PropositionalLogicTypeID::t_ProposositionalLogicDisjunction;
-        PropositionalLogicDisjunction(const std::unordered_set<PropositionalLogicNode*, PropositionalLogicHash, PropositionalLogicEquals>* c): args_(*c) {}
-        void accept(PropositionalLogicNodeVisitor& v) override;
+        PropositionalLogicDisjunction(const formula_set& c): args_(c) {}
+        void accept(PropositionalLogicNodeVisitor& v) const override;
         std::size_t hash() const override;
-        bool equals(const PropositionalLogicNode& x) const override;
+        bool equals(const formula_ptr& x) const override;
         std::size_t get_type_id() const;
 };
 
@@ -147,7 +151,7 @@ class PropositionalLogicNodeToStringVisitor : public PropositionalLogicNodeVisit
         void visit(const PropositionalLogicConjunction&) override;
         void visit(const PropositionalLogicDisjunction&) override;
 
-        std::string apply(PropositionalLogicNode& f);
+        std::string apply(const PropositionalLogicNode& f);
 };
 
 // visitor that transforms a formula in propositional logic to BDD
@@ -163,7 +167,7 @@ class PropositionalLogicNodeToBDDVisitor : public PropositionalLogicNodeVisitor 
         void visit(const PropositionalLogicConjunction&) override;
         void visit(const PropositionalLogicDisjunction&) override;
 
-        CUDD::BDD apply(PropositionalLogicNode& f);
+        CUDD::BDD apply(const PropositionalLogicNode& f);
 
         PropositionalLogicNodeToBDDVisitor(std::shared_ptr<Syft::VarMgr> var_mgr) : var_mgr_(var_mgr) {}
 };

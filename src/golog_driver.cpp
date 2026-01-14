@@ -5,8 +5,6 @@ GologDriver::~GologDriver() {
     scanner = nullptr;
     delete (parser);
     parser = nullptr;
-    delete (result);
-    result = nullptr;
 }
 
 void GologDriver::parse_helper(std::istream& stream) {
@@ -47,104 +45,100 @@ void GologDriver::parse(std::istream& stream) {
     parse_helper(stream);
 }
 
-PropositionalLogicNode* GologDriver::add_PropositionalLogicTrue() const {
-    return new PropositionalLogicTrue();
+formula_ptr GologDriver::add_PropositionalLogicTrue() const {
+    return std::make_shared<const PropositionalLogicTrue>();
 }
 
-PropositionalLogicNode* GologDriver::add_PropositionalLogicFalse() const {
-    return new PropositionalLogicFalse();
+formula_ptr GologDriver::add_PropositionalLogicFalse() const {
+    return std::make_shared<const PropositionalLogicFalse>();
 }
 
-PropositionalLogicNode* GologDriver::add_PropositionalLogicAtom(std::string s) const {
-    return new PropositionalLogicAtom(s);
+formula_ptr GologDriver::add_PropositionalLogicAtom(std::string s) const {
+    return std::make_shared<const PropositionalLogicAtom>(s);
 }
 
-PropositionalLogicNode* GologDriver::add_PropositionalLogicNegation(PropositionalLogicNode& arg) const {
-    return new PropositionalLogicNegation(&arg);
+formula_ptr GologDriver::add_PropositionalLogicNegation(formula_ptr& arg) const {
+    return std::make_shared<const PropositionalLogicNegation>(arg);
 }
 
-PropositionalLogicNode* GologDriver::add_PropositionalLogicConjunction(
-    PropositionalLogicNode& lhs,
-    PropositionalLogicNode& rhs   
+formula_ptr GologDriver::add_PropositionalLogicConjunction(
+    formula_ptr& lhs,
+    formula_ptr& rhs   
 ) const {
-    std::unordered_set<PropositionalLogicNode*, PropositionalLogicHash, PropositionalLogicEquals> c = { &lhs, &rhs };
-    return new PropositionalLogicConjunction(&c);
+    formula_set c = { lhs, rhs };
+    return std::make_shared<const PropositionalLogicConjunction>(c);
 }
 
-PropositionalLogicNode* GologDriver::add_PropositionalLogicDisjunction(
-    PropositionalLogicNode& lhs,
-    PropositionalLogicNode& rhs   
+formula_ptr GologDriver::add_PropositionalLogicDisjunction(
+    formula_ptr& lhs,
+    formula_ptr& rhs   
 ) const {
-    std::unordered_set<PropositionalLogicNode*, PropositionalLogicHash, PropositionalLogicEquals> c = { &lhs, &rhs };
-    return new PropositionalLogicDisjunction(&c);
+    formula_set c = { lhs, rhs };
+    return std::make_shared<const PropositionalLogicDisjunction>(c);
 }
 
-PropositionalLogicNode* GologDriver::add_PropositionalLogicImplication(
-    PropositionalLogicNode& lhs,
-    PropositionalLogicNode& rhs
+formula_ptr GologDriver::add_PropositionalLogicImplication(
+    formula_ptr& lhs,
+    formula_ptr& rhs
 ) const {
     // a -> b = ~a || b
-    auto* neg = new PropositionalLogicNegation(&lhs);
-    auto* c = new std::unordered_set<PropositionalLogicNode*, PropositionalLogicHash, PropositionalLogicEquals>{
-        neg, &rhs
-    };
-    return new PropositionalLogicDisjunction(c);
+    formula_ptr not_lhs = std::make_shared<const PropositionalLogicNegation>(lhs);
+    formula_set d = {not_lhs, rhs}; 
+    formula_ptr impl = std::make_shared<const PropositionalLogicDisjunction>(d);
+    return impl;
 }
 
-PropositionalLogicNode* GologDriver::add_PropositionalLogicEquivalence(
-    PropositionalLogicNode& lhs,
-    PropositionalLogicNode& rhs
+formula_ptr GologDriver::add_PropositionalLogicEquivalence(
+    formula_ptr& lhs,
+    formula_ptr& rhs
 ) const {
-    auto* neg_lhs = new PropositionalLogicNegation(&lhs);
-    auto* arg_1   = new PropositionalLogicDisjunction(
-        new std::unordered_set<PropositionalLogicNode*, PropositionalLogicHash, PropositionalLogicEquals>{ neg_lhs, &rhs }
-    );
+    formula_ptr not_lhs = std::make_shared<const PropositionalLogicNegation>(lhs);
+    formula_set d1 = {not_lhs, rhs}; 
+    formula_ptr c1 = std::make_shared<const PropositionalLogicDisjunction>(d1);
 
-    auto* neg_rhs = new PropositionalLogicNegation(&rhs);
-    auto* arg_2   = new PropositionalLogicDisjunction(
-        new std::unordered_set<PropositionalLogicNode*, PropositionalLogicHash, PropositionalLogicEquals>{ &lhs, neg_rhs }
-    );
+    formula_ptr not_rhs = std::make_shared<const PropositionalLogicNegation>(rhs);
+    formula_set d2 = {not_rhs, lhs};
+    formula_ptr c2 = std::make_shared<const PropositionalLogicDisjunction>(d2);
 
-    return new PropositionalLogicConjunction(
-        new std::unordered_set<PropositionalLogicNode*, PropositionalLogicHash, PropositionalLogicEquals>{ arg_1, arg_2 }
-    );
+    formula_set c = {c1, c2};
+    return std::make_shared<const PropositionalLogicConjunction>(c);
 }
 
-GologProgramNode* GologDriver::add_GologProgramNil() const {
-    return new GologProgramNil();
+golog_ptr GologDriver::add_GologProgramNil() const {
+    return std::make_shared<const GologProgramNil>();
 }
 
-GologProgramNode* GologDriver::add_GologProgramUnd() const {
-    return new GologProgramUnd();
+golog_ptr GologDriver::add_GologProgramUnd() const {
+    return std::make_shared<const GologProgramUnd>();
 }
 
-GologProgramNode* GologDriver::add_GologProgramAction(std::string s) const {
-    return new GologProgramAction(s);
+golog_ptr GologDriver::add_GologProgramAction(std::string s) const {
+    return std::make_shared<const GologProgramAction>(s);
 }
 
-GologProgramNode* GologDriver::add_GologProgramTest(PropositionalLogicNode& f) const {
-    return new GologProgramTest(&f);
+golog_ptr GologDriver::add_GologProgramTest(formula_ptr& f) const {
+    return std::make_shared<const GologProgramTest>(f);
 }
 
-GologProgramNode* GologDriver::add_GologProgramSequence(
-    GologProgramNode& fst,
-    GologProgramNode& snd
+golog_ptr GologDriver::add_GologProgramSequence(
+    golog_ptr& fst,
+    golog_ptr& snd
 ) const {
-    std::vector<GologProgramNode*> vv = {&fst, &snd};
-    return new GologProgramSequence(&vv);
+    std::vector<golog_ptr> vv = {fst, snd};
+    return std::make_shared<const GologProgramSequence>(vv);
 }
 
-GologProgramNode* GologDriver::add_GologProgramChoice(
-    GologProgramNode& lhs,
-    GologProgramNode& rhs
+golog_ptr GologDriver::add_GologProgramChoice(
+    golog_ptr& lhs,
+    golog_ptr& rhs
 ) const {
-    std::unordered_set<GologProgramNode*, GologProgramHash, GologProgramEquals> ss = {&lhs, &rhs};
-    return new GologProgramChoice(&ss);
+    golog_set s = {lhs, rhs};
+    return std::make_shared<const GologProgramChoice>(s);
 }
 
-GologProgramNode* GologDriver::add_GologProgramIteration(
-    GologProgramNode& arg 
+golog_ptr GologDriver::add_GologProgramIteration(
+    golog_ptr& arg 
 ) const {
-    return new GologProgramIteration(&arg);
+    return std::make_shared<const GologProgramIteration>(arg);
 }
 

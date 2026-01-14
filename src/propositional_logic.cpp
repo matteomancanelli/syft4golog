@@ -9,11 +9,11 @@ std::size_t PropositionalLogicTrue::get_type_id() const {
     return type_id_;
 }
 
-bool PropositionalLogicTrue::equals(const PropositionalLogicNode& x) const {
-    return type_id_ == x.get_type_id();
+bool PropositionalLogicTrue::equals(const formula_ptr& x) const {
+    return type_id_ == x->get_type_id();
 }
 
-void PropositionalLogicTrue::accept(PropositionalLogicNodeVisitor& v) {v.visit(*this);}
+void PropositionalLogicTrue::accept(PropositionalLogicNodeVisitor& v) const {v.visit(*this);}
 
 // false
 std::size_t PropositionalLogicFalse::hash() const {
@@ -24,25 +24,25 @@ std::size_t PropositionalLogicFalse::get_type_id() const {
     return type_id_;
 }
 
-bool PropositionalLogicFalse::equals(const PropositionalLogicNode& x) const {
-    return type_id_ == x.get_type_id();
+bool PropositionalLogicFalse::equals(const formula_ptr& x) const {
+    return type_id_ == x->get_type_id();
 }
 
-void PropositionalLogicFalse::accept(PropositionalLogicNodeVisitor& v) {v.visit(*this);}
+void PropositionalLogicFalse::accept(PropositionalLogicNodeVisitor& v) const {v.visit(*this);}
 
 // atoms
 std::size_t PropositionalLogicAtom::hash() const {
     return type_id_ * std::hash<std::string>{}(name_);
 }
 
-void PropositionalLogicAtom::accept(PropositionalLogicNodeVisitor& v) {v.visit(*this);}
+void PropositionalLogicAtom::accept(PropositionalLogicNodeVisitor& v) const {v.visit(*this);}
 
 std::size_t PropositionalLogicAtom::get_type_id() const {
     return type_id_;
 }
 
-bool PropositionalLogicAtom::equals(const PropositionalLogicNode& x) const {
-    return type_id_ == x.get_type_id() && (name_ == dynamic_cast<const PropositionalLogicAtom&>(x).name_);
+bool PropositionalLogicAtom::equals(const formula_ptr& x) const {
+    return type_id_ == x->get_type_id() && (name_ == dynamic_cast<const PropositionalLogicAtom&>(*x).name_);
 }
 
 // negation
@@ -54,11 +54,11 @@ std::size_t PropositionalLogicNegation::get_type_id() const {
     return type_id_;
 }
 
-bool PropositionalLogicNegation::equals(const PropositionalLogicNode& x) const {    
-    return type_id_ == x.get_type_id() && (arg_->equals(*dynamic_cast<const PropositionalLogicNegation&>(x).arg_));
+bool PropositionalLogicNegation::equals(const formula_ptr& x) const {    
+    return type_id_ == x->get_type_id() && (arg_->equals(dynamic_cast<const PropositionalLogicNegation&>(*x).arg_));
 }
 
-void PropositionalLogicNegation::accept(PropositionalLogicNodeVisitor& v) {v.visit(*this);}
+void PropositionalLogicNegation::accept(PropositionalLogicNodeVisitor& v) const {v.visit(*this);}
 
 // conjunction
 std::size_t PropositionalLogicConjunction::hash() const {
@@ -72,15 +72,15 @@ std::size_t PropositionalLogicConjunction::get_type_id() const {
     return type_id_;
 }
 
-bool PropositionalLogicConjunction::equals(const PropositionalLogicNode& x) const {
-    if (type_id_ == x.get_type_id()) {
-        auto d = dynamic_cast<const PropositionalLogicConjunction&>(x);
+bool PropositionalLogicConjunction::equals(const formula_ptr& x) const {
+    if (type_id_ == x->get_type_id()) {
+        auto d = dynamic_cast<const PropositionalLogicConjunction&>(*x);
         if (args_.size() != d.args_.size()) return false;
         auto d_args = d.args_;
         auto a = args_.begin();
         auto b = d_args.begin();
         for (; a != args_.end(); ++a, ++b) {
-            if (!(*a)->equals(**b)) return false;
+            if (!(*a)->equals(*b)) return false;
         }
         return true;
     } else {
@@ -88,7 +88,7 @@ bool PropositionalLogicConjunction::equals(const PropositionalLogicNode& x) cons
     }
 }
 
-void PropositionalLogicConjunction::accept(PropositionalLogicNodeVisitor& v) {v.visit(*this);}
+void PropositionalLogicConjunction::accept(PropositionalLogicNodeVisitor& v) const {v.visit(*this);}
 
 // disjunction
 std::size_t PropositionalLogicDisjunction::get_type_id() const {
@@ -102,15 +102,15 @@ std::size_t PropositionalLogicDisjunction::hash() const {
     return hash;
 }
 
-bool PropositionalLogicDisjunction::equals(const PropositionalLogicNode& x) const {
-    if (type_id_ == x.get_type_id()) {
-        auto d = dynamic_cast<const PropositionalLogicDisjunction&>(x);
+bool PropositionalLogicDisjunction::equals(const formula_ptr& x) const {
+    if (type_id_ == x->get_type_id()) {
+        auto d = dynamic_cast<const PropositionalLogicDisjunction&>(*x);
         if (args_.size() != d.args_.size()) return false;
         auto d_args = d.args_;
         auto a = args_.begin();
         auto b = d_args.begin();
         for (; a != args_.end(); ++a, ++b) {
-            if (!(*a)->equals(**b)) return false;
+            if (!(*a)->equals(*b)) return false;
         }
         return true;
     } else {
@@ -118,7 +118,7 @@ bool PropositionalLogicDisjunction::equals(const PropositionalLogicNode& x) cons
     }
 }
 
-void PropositionalLogicDisjunction::accept(PropositionalLogicNodeVisitor& v) {v.visit(*this);}
+void PropositionalLogicDisjunction::accept(PropositionalLogicNodeVisitor& v) const {v.visit(*this);}
 
 // visitors
 // to string visitor
@@ -164,7 +164,7 @@ void PropositionalLogicNodeToStringVisitor::visit(const PropositionalLogicDisjun
     result_ = s.str();
 }
 
-std::string PropositionalLogicNodeToStringVisitor::apply(PropositionalLogicNode& f) {
+std::string PropositionalLogicNodeToStringVisitor::apply(const PropositionalLogicNode& f) {
     f.accept(*this);
     return result_;
 }
@@ -200,7 +200,7 @@ void PropositionalLogicNodeToBDDVisitor::visit(const PropositionalLogicDisjuncti
     result_ = r;
 }
 
-CUDD::BDD PropositionalLogicNodeToBDDVisitor::apply(PropositionalLogicNode& f) {
+CUDD::BDD PropositionalLogicNodeToBDDVisitor::apply(const PropositionalLogicNode& f) {
     f.accept(*this);
     return result_;
 }

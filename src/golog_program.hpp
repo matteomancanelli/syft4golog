@@ -26,24 +26,30 @@ enum GologProgramTypeID {
 };
 
 class GologProgramNodeVisitor;
+class GologProgramNode;
+
+typedef std::shared_ptr<const GologProgramNode> golog_ptr;
+typedef std::vector<std::shared_ptr<const GologProgramNode>> golog_vec;
 
 // abstract class for AST nodes representing Golog programs
 class GologProgramNode {
     public:
         virtual ~GologProgramNode() = default;
-        virtual void accept(GologProgramNodeVisitor& v) = 0;
+        virtual void accept(GologProgramNodeVisitor& v) const = 0;
         virtual std::size_t hash() const = 0;
-        virtual bool equals(const GologProgramNode& x) const = 0;
+        virtual bool equals(const golog_ptr& x) const = 0;
         virtual std::size_t get_type_id() const = 0;
 };
 
 struct GologProgramHash {
-    std::size_t operator()(const GologProgramNode* x) const {return x->hash();}
+    std::size_t operator()(const golog_ptr& x) const {return x->hash();}
 };
 
 struct GologProgramEquals {
-    bool operator()(const GologProgramNode* x1, const GologProgramNode* x2) const {return x1->equals(*x2);}
+    bool operator()(const golog_ptr& x1, const golog_ptr& x2) const {return x1->equals(x2);}
 };
+
+typedef std::unordered_set<std::shared_ptr<const GologProgramNode>, GologProgramHash, GologProgramEquals> golog_set;
 
 // concrete AST nodes representing Golog Programs
 
@@ -52,9 +58,9 @@ class GologProgramNil: public GologProgramNode {
     public:
         const static GologProgramTypeID type_id_ = GologProgramTypeID::t_GologProgramNil;
         GologProgramNil() {}
-        void accept(GologProgramNodeVisitor& x) override;
+        void accept(GologProgramNodeVisitor& x) const override;
         std::size_t hash() const override;
-        bool equals(const GologProgramNode& x) const override;
+        bool equals(const golog_ptr& x) const override;
         std::size_t get_type_id() const; 
 };
 
@@ -63,9 +69,9 @@ class GologProgramUnd : public GologProgramNode {
     public:
         const static GologProgramTypeID type_id_ = GologProgramTypeID::t_GologProgramUnd;
         GologProgramUnd() {}
-        void accept(GologProgramNodeVisitor& v) override;
+        void accept(GologProgramNodeVisitor& v) const override;
         std::size_t hash() const override;
-        bool equals(const GologProgramNode& x) const override; 
+        bool equals(const golog_ptr& x) const override; 
         std::size_t get_type_id() const;
 };
 
@@ -75,9 +81,9 @@ class GologProgramAction : public GologProgramNode {
         const static GologProgramTypeID type_id_ = GologProgramTypeID::t_GologProgramAction;
         std::string action_name_ = "";
         GologProgramAction(const std::string& x): action_name_(x) {}
-        void accept(GologProgramNodeVisitor& v) override;
+        void accept(GologProgramNodeVisitor& v) const override;
         std::size_t hash() const override;
-        bool equals(const GologProgramNode& x) const override; 
+        bool equals(const golog_ptr& x) const override; 
         std::size_t get_type_id() const override; 
 };
 
@@ -85,11 +91,11 @@ class GologProgramAction : public GologProgramNode {
 class GologProgramTest : public  GologProgramNode {
     public:
         const static GologProgramTypeID type_id_ = GologProgramTypeID::t_GologProgramTest;
-        PropositionalLogicNode* arg_; // argument of test is a propositional formula
-        GologProgramTest(PropositionalLogicNode* x): arg_(x) {}
-        void accept(GologProgramNodeVisitor& v) override;
+        formula_ptr arg_; // argument of test is a propositional formula
+        GologProgramTest(const formula_ptr& x): arg_(x) {}
+        void accept(GologProgramNodeVisitor& v) const override;
         std::size_t hash() const override;
-        bool equals(const GologProgramNode& v) const override;
+        bool equals(const golog_ptr& v) const override;
         std::size_t get_type_id() const;
 };
 
@@ -97,11 +103,11 @@ class GologProgramTest : public  GologProgramNode {
 class GologProgramSequence : public GologProgramNode {
     public:
         const static GologProgramTypeID type_id_ = GologProgramTypeID::t_GologProgramSequence;
-        std::vector<GologProgramNode*> args_;
-        GologProgramSequence(const std::vector<GologProgramNode*>* c): args_(*c) {}
-        void accept(GologProgramNodeVisitor& v) override;
+        golog_vec args_;
+        GologProgramSequence(const golog_vec& c): args_(c) {}
+        void accept(GologProgramNodeVisitor& v) const override;
         std::size_t hash() const override;
-        bool equals(const GologProgramNode& x) const override; 
+        bool equals(const golog_ptr& x) const override; 
         std::size_t get_type_id() const;
 };
 
@@ -109,11 +115,11 @@ class GologProgramSequence : public GologProgramNode {
 class GologProgramChoice : public GologProgramNode {
     public:
         const static GologProgramTypeID type_id_ = GologProgramTypeID::t_GologProgramChoice;
-        std::unordered_set<GologProgramNode*, GologProgramHash, GologProgramEquals> args_;
-        GologProgramChoice(const std::unordered_set<GologProgramNode*, GologProgramHash, GologProgramEquals>* c): args_(*c) {}
-        void accept(GologProgramNodeVisitor& v) override;
+        golog_set args_;
+        GologProgramChoice(const golog_set& c): args_(c) {}
+        void accept(GologProgramNodeVisitor& v) const override;
         std::size_t hash() const override;
-        bool equals(const GologProgramNode& x) const override;
+        bool equals(const golog_ptr& x) const override;
         std::size_t get_type_id() const;
 };
 
@@ -121,11 +127,11 @@ class GologProgramChoice : public GologProgramNode {
 class GologProgramIteration : public GologProgramNode {
     public:
         const static GologProgramTypeID type_id_ = GologProgramTypeID::t_GologProgramIteration;
-        GologProgramNode* arg_;
-        GologProgramIteration(GologProgramNode* x): arg_(x) {}
-        void accept(GologProgramNodeVisitor& v) override;
+        golog_ptr arg_;
+        GologProgramIteration(const golog_ptr& x): arg_(x) {}
+        void accept(GologProgramNodeVisitor& v) const override;
         std::size_t hash() const override;
-        bool equals(const GologProgramNode& x) const override; 
+        bool equals(const golog_ptr& x) const override; 
         std::size_t get_type_id() const;
 };
 
@@ -154,7 +160,7 @@ class GologProgramNodeToString : public GologProgramNodeVisitor {
         void visit(const GologProgramChoice&) override;
         void visit(const GologProgramIteration&) override;
 
-        std::string apply(GologProgramNode& x);
+        std::string apply(const GologProgramNode& x);
 };
 
 #endif

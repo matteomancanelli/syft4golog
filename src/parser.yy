@@ -78,11 +78,11 @@
 input : golog_program           { $$ = $1; d.result = $$; };
 
 propositional_formula : 
-    propositional_formula EQUIVALENCE propositional_formula         { $$ = d.add_PropositionalLogicEquivalence(*$1, *$3); }
-    | propositional_formula IMPLICATION propositional_formula       { $$ = d.add_PropositionalLogicImplication(*$1, *$3); }
-    | propositional_formula OR propositional_formula                { $$ = d.add_PropositionalLogicDisjunction(*$1, *$3); }
-    | propositional_formula AND propositional_formula               { $$ = d.add_PropositionalLogicConjunction(*$1, *$3); }
-    | NOT propositional_formula                                     { $$ = d.add_PropositionalLogicNegation(*$2); }
+    propositional_formula EQUIVALENCE propositional_formula         { $$ = d.add_PropositionalLogicEquivalence($1, $3); }
+    | propositional_formula IMPLICATION propositional_formula       { $$ = d.add_PropositionalLogicImplication($1, $3); }
+    | propositional_formula OR propositional_formula                { $$ = d.add_PropositionalLogicDisjunction($1, $3); }
+    | propositional_formula AND propositional_formula               { $$ = d.add_PropositionalLogicConjunction($1, $3); }
+    | NOT propositional_formula                                     { $$ = d.add_PropositionalLogicNegation($2); }
     | TRUE_                                                         { $$ = d.add_PropositionalLogicTrue(); }
     | FALSE_                                                        { $$ = d.add_PropositionalLogicFalse(); }
     | SYMBOL                                                        { $$ = d.add_PropositionalLogicAtom($1); }
@@ -90,10 +90,10 @@ propositional_formula :
 
 propositional_formula : LSPAR propositional_formula RSPAR             { $$ = $2; };
 
-golog_program : golog_program SEQUENCE golog_program                { $$ = d.add_GologProgramSequence(*$1, *$3); }
-                | golog_program CHOICE golog_program                { $$ = d.add_GologProgramChoice(*$1, *$3); }
-                | golog_program ITERATION                           { $$ = d.add_GologProgramIteration(*$1); }
-                | propositional_formula TEST                        { $$ = d.add_GologProgramTest(*$1); }
+golog_program : golog_program SEQUENCE golog_program                { $$ = d.add_GologProgramSequence($1, $3); }
+                | golog_program CHOICE golog_program                { $$ = d.add_GologProgramChoice($1, $3); }
+                | golog_program ITERATION                           { $$ = d.add_GologProgramIteration($1); }
+                | propositional_formula TEST                        { $$ = d.add_GologProgramTest($1); }
                 | NIL                                               { $$ = d.add_GologProgramNil(); }
                 | UND                                               { $$ = d.add_GologProgramUnd(); }
                 | SYMBOL                                            { $$ = d.add_GologProgramAction($1); }
