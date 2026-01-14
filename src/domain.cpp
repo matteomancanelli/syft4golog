@@ -614,10 +614,6 @@ void Domain::parse_sas() {
         // debug
         // var_mgr_->print_varmgr();
 
-        // define encoding for action and reaction vars
-        std::unordered_map<std::string, CUDD::BDD> action_name_to_bdd;
-        std::unordered_map<std::string, CUDD::BDD> reaction_name_to_bdd;
-
         // mutual exlcusion axioms for agent and environment
         CUDD::BDD agent_mutex = var_mgr_->cudd_mgr()->bddZero();
         CUDD::BDD env_mutex = var_mgr_->cudd_mgr()->bddZero();
@@ -647,7 +643,7 @@ void Domain::parse_sas() {
             }
             act_props = ("(" + act_props.substr(0, act_props.size() - 4) + ")");
             action_name_to_props_.insert(std::make_pair(action_name, act_props));
-            action_name_to_bdd.insert(std::make_pair(action_name, act_bdd));
+            action_name_to_bdd_.insert(std::make_pair(action_name, act_bdd));
             // action_name_to_bin.insert(std::make_pair(action_name, act_bin_id));
             agent_mutex = agent_mutex + act_bdd; // add action bdd to mutual exclusion agent axiom
             id_to_action_name_.insert(std::make_pair(act_int_id, action_name));
@@ -676,7 +672,7 @@ void Domain::parse_sas() {
             }
             react_props = ("(" + react_props.substr(react_props.size() - 4) + ")");
             reaction_name_to_props_.insert(std::make_pair(reaction_name, react_props));
-            reaction_name_to_bdd.insert(std::make_pair(reaction_name, react_bdd));
+            reaction_name_to_bdd_.insert(std::make_pair(reaction_name, react_bdd));
             // reaction_name_to_bin.insert(std::make_pair(reaction_name, react_bin_id));
             env_mutex = env_mutex + react_bdd; // add reaction bdd to mutual exclusion env axiom
             id_to_reaction_name_.insert(std::make_pair(react_int_id, reaction_name));
@@ -710,9 +706,9 @@ void Domain::parse_sas() {
             std::string reaction_name = action_reaction_name.substr(split_index);
             std::string action_name = boost::replace_all_copy(action_reaction_name, reaction_name, "");
 
-            act.set_agent_bdd(action_name_to_bdd[action_name]);
-            act.set_env_bdd(reaction_name_to_bdd[reaction_name]);
-            act.set_action_bdd(action_name_to_bdd[action_name] * reaction_name_to_bdd[reaction_name]);
+            act.set_agent_bdd(action_name_to_bdd_[action_name]);
+            act.set_env_bdd(reaction_name_to_bdd_[reaction_name]);
+            act.set_action_bdd(action_name_to_bdd_[action_name] * reaction_name_to_bdd_[reaction_name]);
 
             // act.set_action_bin(action_name_to_bin[action_name]);
             // act.set_env_bin(reaction_name_to_bin[reaction_name]);
@@ -735,7 +731,7 @@ void Domain::parse_sas() {
         return std::make_pair(CUDD::BDD(agent_mutex), CUDD::BDD(env_mutex));
     }
 
-    std::vector<CUDD::BDD> Domain::get_transition_function(std::size_t automaton_id, const CUDD::BDD& agent_mutex, const CUDD::BDD& env_mutex) const {
+    std::vector<CUDD::BDD> Domain::get_transition_function(std::size_t automaton_id, const CUDD::BDD& agent_mutex, const CUDD::BDD& env_mutex) {
 
         std::vector<CUDD::BDD> transition_function;
 
@@ -804,7 +800,7 @@ void Domain::parse_sas() {
         return transition_function;
     }
 
-    CUDD::BDD Domain::get_agent_pre(std::size_t domain_dfa_id) const {
+    CUDD::BDD Domain::get_agent_pre(std::size_t domain_dfa_id) {
         CUDD::BDD agent_pre_bdd = var_mgr_->cudd_mgr()->bddOne();
         std::unordered_set<std::string> added_action_names;
         // debug
@@ -831,6 +827,7 @@ void Domain::parse_sas() {
                 CUDD::BDD act_pre_bdd = var_mgr_->cudd_mgr()->bddOne();
                 for (const auto& i : act_pos_pre) act_pre_bdd = act_pre_bdd * var_mgr_->state_variable(domain_dfa_id, i);
                 for (const auto& i : act_neg_pre) act_pre_bdd = act_pre_bdd * (!var_mgr_->state_variable(domain_dfa_id, -i));
+                action_name_to_pre_bdd_.insert(std::make_pair(action_name, act_pre_bdd));
 
                 act_pre_bdd = ((!act.get_agent_bdd()) + act_pre_bdd);
                 agent_pre_bdd = agent_pre_bdd * act_pre_bdd;

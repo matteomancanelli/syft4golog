@@ -214,6 +214,10 @@ class Domain {
         std::map<int, std::string> id_to_reaction_name_;
         std::unordered_map<std::string, std::string> action_name_to_props_;
         std::unordered_map<std::string, std::string> reaction_name_to_props_;
+        // TODO. Add: 
+        std::unordered_map<std::string, CUDD::BDD> action_name_to_bdd_;
+        std::unordered_map<std::string, CUDD::BDD> reaction_name_to_bdd_;
+        std::unordered_map<std::string, CUDD::BDD> action_name_to_pre_bdd_;
         std::unordered_set<Invariant, InvariantHash> invariants_;
         CUDD::BDD invariants_bdd_;
 
@@ -274,6 +278,14 @@ class Domain {
 
         std::size_t get_bits(const std::unordered_set<std::string>& set) const;
 
+        std::unordered_map<std::string, CUDD::BDD> get_action_name_to_bdd() const {
+            return action_name_to_bdd_;
+        }
+
+        std::unordered_map<std::string, CUDD::BDD> get_action_name_to_pre_bdd() const {
+            return action_name_to_pre_bdd_;
+        }
+
     private:
         std::vector<int> to_bits(int i, std::size_t size) const;
         void parse_sas();
@@ -285,9 +297,9 @@ class Domain {
         std::string get_ltlf_agent_pre() const;
         std::string get_ltlf_env_pre() const;
         std::pair<CUDD::BDD, CUDD::BDD> get_action_reaction_vars(const std::unordered_set<std::string>& action_names, const std::unordered_set<std::string>& reaction_names);
-        std::vector<CUDD::BDD> get_transition_function(std::size_t automaton_id, const CUDD::BDD& agent_mutex, const CUDD::BDD& env_mutex) const;
+        std::vector<CUDD::BDD> get_transition_function(std::size_t automaton_id, const CUDD::BDD& agent_mutex, const CUDD::BDD& env_mutex);
         CUDD::BDD get_final_states(std::size_t automaton_id) const;
-        CUDD::BDD get_agent_pre(std::size_t automaton_id) const;
+        CUDD::BDD get_agent_pre(std::size_t automaton_id);
         CUDD::BDD get_env_pre(std::size_t automaton_id) const;
         CUDD::BDD invariant_to_bdd(std::size_t automaton_id, const Invariant& inv) const;
         std::pair<std::unordered_set<int>, std::unordered_set<int>> get_invariant_vars(const std::vector<std::string>& inv_vec, const std::unordered_map<std::string, int>& var_to_id) const;
