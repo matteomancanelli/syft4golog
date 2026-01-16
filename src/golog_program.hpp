@@ -9,11 +9,12 @@
 #include<sstream>
 #include<unordered_set>
 #include<functional>
+#include<queue>
 
 #include"propositional_logic.hpp"
+#include"domain.h"
 
 // type ID for each concrete object of GologProgramNode subclasses
-
 enum GologProgramTypeID {
     t_GologProgramNil, // 
     t_GologProgramUnd,
@@ -32,7 +33,7 @@ typedef std::shared_ptr<const GologProgramNode> golog_ptr;
 typedef std::vector<std::shared_ptr<const GologProgramNode>> golog_vec;
 
 // abstract class for AST nodes representing Golog programs
-class GologProgramNode {
+class GologProgramNode : public std::enable_shared_from_this<GologProgramNode> {
     public:
         virtual ~GologProgramNode() = default;
         virtual void accept(GologProgramNodeVisitor& v) const = 0;
@@ -162,5 +163,102 @@ class GologProgramNodeToString : public GologProgramNodeVisitor {
 
         std::string apply(const GologProgramNode& x);
 };
+
+std::string to_string(const golog_ptr& x);
+
+/**
+ * \brief data structure to represent (program, action) input for function T
+ */
+struct ProgramActionPair {
+    golog_ptr program_;
+    std::string action_;
+
+    ProgramActionPair(const golog_ptr& program, const std::string& action):
+        program_(program), action_(action) {}
+
+    std::size_t hash() const;
+    bool equals(const std::shared_ptr<const ProgramActionPair>& x) const;
+};
+
+/**
+ * \brief data structure to represent (guard, successor program) output for function T
+ */
+struct ProgramTransition {
+    CUDD::BDD guard_;
+    golog_ptr successor_program_;
+
+    ProgramTransition(const CUDD::BDD& guard, const golog_ptr& successor_program):
+        guard_(guard), successor_program_(successor_program) {}
+
+    std::size_t hash() const; 
+    bool equals(const std::shared_ptr<const ProgramTransition>& x) const;
+};
+
+// type definitions
+typedef std::shared_ptr<const ProgramActionPair> program_action_ptr;
+typedef std::shared_ptr<const ProgramTransition> transition_ptr;
+typedef std::unordered_set<CUDD::BDD, BDDHash> bdd_set;
+typedef std::queue<golog_ptr> golog_queue;
+
+struct ProgramActionPairHash {
+    std::size_t operator()(const program_action_ptr& x) const { return x->hash();}
+};
+
+struct ProgramActionPairEquals {
+    bool operator()(const program_action_ptr& x1, const program_action_ptr& x2) const { return x1->equals(x2);}
+};
+
+struct ProgramTransitionHash {
+    std::size_t operator()(const transition_ptr& x) const { return x->hash();}
+};
+
+struct ProgramTransitionEquals {
+    bool operator()(const transition_ptr& x1, const transition_ptr& x2) const { return x1->equals(x2);}
+};
+
+typedef std::unordered_set<std::shared_ptr<const ProgramTransition>, ProgramTransitionHash, ProgramTransitionEquals> transition_set;
+
+struct TFCResult {
+    std::unordered_map<program_action_ptr, transition_set, ProgramActionPairHash, ProgramActionPairEquals> transitions_;
+    std::unordered_map<golog_ptr, CUDD::BDD, GologProgramHash, GologProgramEquals> final_functions_; // F
+    std::unordered_map<golog_ptr, bdd_set, GologProgramHash, GologProgramEquals> continuation_functions_; // C
+};
+
+/**
+ * \brief class TFCVisitor computes function TFC for a given program (and all its subprograms)
+ */
+class TFCVisitor : public GologProgramNodeVisitor {
+
+    public:
+        std::shared_ptr<Syft::VarMgr> var_mgr_;
+        std::unordered_map<std::string, CUDD::BDD> action_name_to_bdd_;
+        std::unordered_map<std::string, CUDD::BDD> action_name_to_pre_bdd_;
+        TFCResult result_;
+        golog_set visited_programs_; // store programs that have been visited so far
+        golog_queue programs_queue_; // programs that need to be visited
+
+        void visit(const GologProgramNil&) override;
+        void visit(const GologProgramUnd&) override;
+        void visit(const GologProgramAction&) override;
+        void visit(const GologProgramTest&) override;
+        void visit(const GologProgramSequence&) override;
+        void visit(const GologProgramChoice&) override;
+        void visit(const GologProgramIteration&) override;
+
+        TFCVisitor(std::shared_ptr<Syft::VarMgr> var_mgr,
+            const std::unordered_map<std::string, CUDD::BDD>& action_name_to_bdd,
+            const std::unordered_map<std::string, CUDD::BDD>& action_name_to_pre_bdd_) : 
+                var_mgr_(var_mgr),
+                action_name_to_bdd_(action_name_to_bdd),
+                action_name_to_pre_bdd_(action_name_to_pre_bdd_),
+                visited_programs_() {}
+
+        TFCResult apply(const GologProgramNode& x);
+};
+
+TFCResult get_tfc(const golog_ptr& x, 
+    const std::shared_ptr<Syft::VarMgr>& var_mgr, 
+    const std::unordered_map<std::string, CUDD::BDD>& action_name_to_bdd,
+    const std::unordered_map<std::string, CUDD::BDD>& action_name_to_pre_bdd_);
 
 #endif
