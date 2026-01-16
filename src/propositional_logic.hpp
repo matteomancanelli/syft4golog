@@ -172,7 +172,7 @@ class PropositionalLogicNodeToBDDVisitor : public PropositionalLogicNodeVisitor 
         PropositionalLogicNodeToBDDVisitor(std::shared_ptr<Syft::VarMgr> var_mgr) : var_mgr_(var_mgr) {}
 };
 
-std::string to_str(const PropositionalLogicNode& f);
-CUDD::BDD to_bdd(const PropositionalLogicNode& f);
+std::string to_string(const formula_ptr& f);
+CUDD::BDD to_bdd(const formula_ptr& f, const std::shared_ptr<Syft::VarMgr>& var_mgr);
 
 #endif
