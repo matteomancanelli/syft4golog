@@ -390,31 +390,33 @@ int main(int argc, char ** argv) {
     // std::string main_program = "nil";
     // std::string main_program = "put_down_b1";
     // std::string main_program = "[on_table_b1 && on_table_b2]?";
-    // std::string main_program = "put_dkown_b1 | put_down_b2 | [on_table_b1 && on_table_b2]?";
-    // std::string main_program = "(nop | ([on_table_b1 && on_table_b2]?))";
+    // std::string main_program = "put_down_b1 | [on_table_b1 && on_table_b2]?";
+    // std::string main_program = "(put_down_b1 | put_down_b2 | ([on_table_b1 && on_table_b2]?))";
+    // std::string main_program = "(nop*)";
     // std::string main_program = "(put_down_b1 | put_down_b2)*";
     // std::string main_program = "(((nop)*)|(put_down_b1)*)";
     // std::string main_program = "(put_down_b1)*|[on_table_b1 && on_table_b2]?";
-    // std::string main_program = "(put_down_b1) | (nop | put_down_b2)";
     // std::string main_program = "(((nop|put_down_b1)*))|[on_table_b1]?";
     // std::string main_program = "pick_up_from_table_b1;put_down_b1";
+    // std::string main_program = "(pick_up_from_table_b1;put_down_b1)*";
     // std::string main_program = "nil;put_down_b1";
     // std::string main_program = "(nil);(nop*)";
-    // std::string main_program = "nil;(nop*)";
-    // std::string main_program = "(nop*)";
-    // std::string main_program = "(nil;(nop*))";
     // std::string main_program = "(nil;(nop*))*";
-    std::string main_program = "pick_up_from_table_b1;put_down_b1;pick_up_from_table_b2;put_down_b2";
+    // std::string main_program =
+    //     "(((pick_up_from_table_b1;(nil | put_down_b1)) | (pick_up_from_table_b2;(nil | put_down_b2)))*;[on_table_b1 && on_table_b2]?)";
+    std::string main_program =
+        "(pick_up_from_table_b1;(nil | put_down_b1));[on_table_b1]?";
+
 
     std::stringstream program_stream(main_program);
     driver->parse(program_stream);
     golog_ptr parsed_program = driver -> get_result();
 
-    TFCVisitor tfc(var_mgr, domain.get_action_name_to_bdd(), domain.get_action_name_to_pre_bdd());
+    // TFCVisitor tfc(var_mgr, domain.get_action_name_to_bdd(), domain.get_action_name_to_pre_bdd());
 
     std::cout << "Testing program: " << to_string(parsed_program) << std::endl;
 
-    TFCResult tfc_result = tfc.apply(*parsed_program);
+    TFCResult tfc_result = get_tfc(parsed_program, var_mgr, domain.get_action_name_to_bdd(), domain.get_action_name_to_pre_bdd());
 
     auto transitions = tfc_result.transitions_;
     auto final_states = tfc_result.final_functions_;
