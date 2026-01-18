@@ -1,7 +1,0 @@
-action A() {}
-action B() {}
-
-procedure main() {
-    A();
-    B();
-}
