@@ -193,8 +193,36 @@ bool ProgramTransition::equals(const std::shared_ptr<const ProgramTransition>& x
     return (guard_ == x->guard_) && (successor_program_->equals(x->successor_program_));
 }
 
+void TFCResult::print() const {
+    std::cout << std::endl;
+    std::cout << "Transitions (T):" << std::endl;
+    for (const auto& [pa_pair, prog_transitions]: transitions_) {
+        std::cout << "T(" << to_string(pa_pair->program_) << ", " << pa_pair -> action_ << ") = {" << std::flush;
+        for (const auto& t : prog_transitions) {
+            std::cout  << "- (" << t->guard_ << ", " << to_string(t->successor_program_) << ") - " << std::flush;
+        }
+        std::cout << "}" << std::endl;
+    } 
+
+    std::cout << std::endl;
+    std::cout << "Final states (F):" << std::endl;
+    for (const auto& [subprog, f] : final_functions_) {
+        std::cout << "F(" << to_string(subprog) << ") = " << f << std::endl;
+    }
+
+    std::cout << std::endl;
+    std::cout << "Continuation functions (C): " << std::endl;
+    for (const auto& [subprog, f_set] : continuation_functions_) {
+        std::cout << "C(" << to_string(subprog) << ") = {" << std::flush;
+        for (const auto& f: f_set) {
+            std::cout << " - " << f << " - " << std::flush; 
+        }
+        std::cout << "}" << std::endl;
+    }
+}
+
 void TFCVisitor::visit(const GologProgramNil& x) {
-    std::cout << "Currently visiting program: nil" << std::endl;
+    // std::cout << "Currently visiting program: nil" << std::endl;
 
     // recall nil=[true]?
     golog_ptr x_ptr = std::make_shared<GologProgramNil>();
@@ -450,6 +478,5 @@ TFCResult get_tfc(const golog_ptr& x,
     const std::unordered_map<std::string, CUDD::BDD>& action_name_to_bdd,
     const std::unordered_map<std::string, CUDD::BDD>& action_name_to_pre_bdd) {
     TFCVisitor v(var_mgr, action_name_to_bdd, action_name_to_pre_bdd);
-    // v.apply(GologProgramNil()); // visit nil before everything
     return v.apply(*x);
 }
