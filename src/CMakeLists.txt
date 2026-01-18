@@ -15,6 +15,7 @@ set(SOURCES
     ${BISON_golog_parser_OUTPUTS} 
     ${FLEX_golog_lexer_OUTPUTS}
     ${CMAKE_CURRENT_SOURCE_DIR}/golog_driver.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/program_graph.cpp
 )
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR} ${EXT_INCLUDE_PATH})

@@ -3,16 +3,6 @@
 
 #include<memory>
 
-#include "parser/parser.h"
-
-#include "model/action.h"
-#include "model/formula.h"
-#include "model/reference.h"
-#include "model/procedural.h"
-#include "model/types.h"
-#include "model/value.h"
-#include "model/effect_axiom.h"
-
 #include "domain.h"
 #include "synthesis/header/VarMgr.h"
 #include "synthesis/header/automata/SymbolicStateDfa.h"
@@ -26,7 +16,7 @@ class BaseGologSynthesizer{
     protected:
         std::shared_ptr<Syft::VarMgr> var_mgr_;
         std::shared_ptr<Domain> domain_;
-        std::shared_ptr<gologpp::Procedure> golog_program_;
+        golog_ptr golog_program_;
 
         Syft::SymbolicStateDfa compose(
             const Syft::SymbolicStateDfa& domain_dfa,

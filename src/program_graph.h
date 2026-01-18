@@ -8,6 +8,8 @@
 
 #include "golog_program.hpp"
 
+typedef std::unordered_map<golog_ptr, std::size_t, GologProgramHash, GologProgramEquals> golog_map;
+
 /**
  * \brief A program graph with explicit states and symbolic transitions
  */
@@ -75,12 +77,13 @@ class ExplicitStateProgramGraph {
         /**
          * \brief Construct an explicit-state program graph from a Golog program
          * 
-         * \param var_mgr The variable manager for managing transition variables
          * \param golog_program The golog program 
          */
         static ExplicitStateProgramGraph from_golog_program(
-            std::shared_ptr<Syft::VarMgr> var_mgr,
-            const GologProgramNode& golog_program);
+            const golog_ptr& golog_program,
+            const std::shared_ptr<Syft::VarMgr>& var_mgr,
+            const std::unordered_map<std::string, CUDD::BDD>& action_name_to_bdd,
+            const std::unordered_map<std::string, CUDD::BDD>& action_name_to_pre_bdd_);
 
         /**
          * \brief Returns the variable manager

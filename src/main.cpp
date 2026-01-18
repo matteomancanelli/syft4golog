@@ -12,6 +12,7 @@
 #include"golog_program.hpp"
 #include"golog_driver.hpp"
 #include"scanner_internal.hpp"
+#include"program_graph.h"
 
 extern "C" int yylex() { return 0; } ;
 
@@ -383,9 +384,9 @@ int main(int argc, char ** argv) {
     // std::cout << "########################" << std::endl;
 
     // TFCVisitor tests
-    std::cout << "###### TFCVisitor tests #####" << std::endl;
+    // std::cout << "###### TFCVisitor tests #####" << std::endl;
     
-    auto driver = std::make_shared<GologDriver>(); 
+    // auto driver = std::make_shared<GologDriver>(); 
 
     // std::string main_program = "nil";
     // std::string main_program = "put_down_b1";
@@ -404,49 +405,77 @@ int main(int argc, char ** argv) {
     // std::string main_program = "(nil;(nop*))*";
     // std::string main_program =
     //     "(((pick_up_from_table_b1;(nil | put_down_b1)) | (pick_up_from_table_b2;(nil | put_down_b2)))*;[on_table_b1 && on_table_b2]?)";
+    // std::string main_program =
+    //     "(pick_up_from_table_b1;(nil | put_down_b1));[on_table_b1]?";
+
+
+    // std::stringstream program_stream(main_program);
+    // driver->parse(program_stream);
+    // golog_ptr parsed_program = driver -> get_result();
+
+    // // TFCVisitor tfc(var_mgr, domain.get_action_name_to_bdd(), domain.get_action_name_to_pre_bdd());
+
+    // std::cout << "Testing program: " << to_string(parsed_program) << std::endl;
+
+    // TFCResult tfc_result = get_tfc(parsed_program, var_mgr, domain.get_action_name_to_bdd(), domain.get_action_name_to_pre_bdd());
+
+    // auto transitions = tfc_result.transitions_;
+    // auto final_states = tfc_result.final_functions_;
+    // auto continuation_functions = tfc_result.continuation_functions_;
+
+    // std::cout << std::endl;
+    // std::cout << "Transitions (T):" << std::endl;
+    // for (const auto& [pa_pair, prog_transitions]: transitions) {
+    //     std::cout << "T(" << to_string(pa_pair->program_) << ", " << pa_pair -> action_ << ") = {" << std::flush;
+    //     for (const auto& t : prog_transitions) {
+    //         std::cout  << "- (" << t->guard_ << ", " << to_string(t->successor_program_) << ") - " << std::flush;
+    //     }
+    //     std::cout << "}" << std::endl;
+    // } 
+
+    // std::cout << std::endl;
+    // std::cout << "Final states (F):" << std::endl;
+    // for (const auto& [subprog, f] : final_states) {
+    //     std::cout << "F(" << to_string(subprog) << ") = " << f << std::endl;
+    // }
+
+    // std::cout << std::endl;
+    // std::cout << "Continuation functions (C): " << std::endl;
+    // for (const auto& [subprog, f_set] : continuation_functions) {
+    //     std::cout << "C(" << to_string(subprog) << ") = {" << std::flush;
+    //     for (const auto& f: f_set) {
+    //         std::cout << " - " << f << " - " << std::flush; 
+    //     }
+    //     std::cout << "}" << std::endl;
+    // }
+
+    std::cout << "##### TEST program graph construction #####" << std::endl;
+
     std::string main_program =
         "(pick_up_from_table_b1;(nil | put_down_b1));[on_table_b1]?";
 
+    auto driver = std::make_shared<GologDriver>(); 
 
     std::stringstream program_stream(main_program);
     driver->parse(program_stream);
     golog_ptr parsed_program = driver -> get_result();
 
-    // TFCVisitor tfc(var_mgr, domain.get_action_name_to_bdd(), domain.get_action_name_to_pre_bdd());
-
     std::cout << "Testing program: " << to_string(parsed_program) << std::endl;
 
-    TFCResult tfc_result = get_tfc(parsed_program, var_mgr, domain.get_action_name_to_bdd(), domain.get_action_name_to_pre_bdd());
+    // std::cout << "Transforming to program graph..." << std::flush;
+    auto pg = ExplicitStateProgramGraph::from_golog_program(
+        parsed_program,
+        var_mgr,
+        domain.get_action_name_to_bdd(),
+        domain.get_action_name_to_pre_bdd()
+    );
+    // std::cout << "DONE" << std::endl;
 
-    auto transitions = tfc_result.transitions_;
-    auto final_states = tfc_result.final_functions_;
-    auto continuation_functions = tfc_result.continuation_functions_;
+    pg.dump_dot("pg.dot");
 
-    std::cout << std::endl;
-    std::cout << "Transitions (T):" << std::endl;
-    for (const auto& [pa_pair, prog_transitions]: transitions) {
-        std::cout << "T(" << to_string(pa_pair->program_) << ", " << pa_pair -> action_ << ") = {" << std::flush;
-        for (const auto& t : prog_transitions) {
-            std::cout  << "- (" << t->guard_ << ", " << to_string(t->successor_program_) << ") - " << std::flush;
-        }
-        std::cout << "}" << std::endl;
-    } 
+    auto sdfa = pg.to_symbolic();
 
-    std::cout << std::endl;
-    std::cout << "Final states (F):" << std::endl;
-    for (const auto& [subprog, f] : final_states) {
-        std::cout << "F(" << to_string(subprog) << ") = " << f << std::endl;
-    }
-
-    std::cout << std::endl;
-    std::cout << "Continuation functions (C): " << std::endl;
-    for (const auto& [subprog, f_set] : continuation_functions) {
-        std::cout << "C(" << to_string(subprog) << ") = {" << std::flush;
-        for (const auto& f: f_set) {
-            std::cout << " - " << f << " - " << std::flush; 
-        }
-        std::cout << "}" << std::endl;
-    }
-
+    sdfa.dump_dot("pg_sdfa.dot");
+    
     return 0;
 }
