@@ -350,10 +350,12 @@ void TFCVisitor::visit(const GologProgramSequence& x) {
             }
         }
         // function C
+        // TODO. Check this function...
         CUDD::BDD cc = var_mgr_->cudd_mgr()->bddOne();
-        for (int j = 0; j<i; ++j) 
-            cc *= result_.final_functions_[x_args[j]];
-        cc *= !result_.final_functions_[arg];
+        if (i == 0) cc *= !result_.final_functions_[arg];
+        else 
+            {for (int j = 0; j<i; ++j) 
+            cc *= result_.final_functions_[x_args[j]];}
         for (const auto& c_bdd : result_.continuation_functions_[arg])
             c.insert(cc * c_bdd);
     }
