@@ -28,7 +28,7 @@ int main(int argc, char ** argv) {
     auto domain_dfa = domain.to_symbolic();
     domain.print_domain();
 
-    var_mgr->print_mgr();
+    // var_mgr->print_mgr();
 
     // tests for propositional formulas
     // std::cout << "#########################################" << std::endl;
@@ -453,6 +453,10 @@ int main(int argc, char ** argv) {
 
     std::string main_program =
         "(pick_up_from_table_b1;(nil | put_down_b1));[on_table_b1]?";
+    // std::string main_program =
+    //     "(((pick_up_from_table_b1;(nil | put_down_b1)) | (pick_up_from_table_b2;(nil | put_down_b2)))*;[on_table_b1 && on_table_b2]?)";
+    // std::string main_program =
+    //     "(pick_up_from_table_b1;nop)|(pick_up_from_table_b1;put_down_b1)"; // not SQSD
 
     auto driver = std::make_shared<GologDriver>(); 
 
@@ -476,6 +480,8 @@ int main(int argc, char ** argv) {
     auto sdfa = pg.to_symbolic();
 
     sdfa.dump_dot("pg_sdfa.dot");
+
+    var_mgr->print_mgr();
     
     return 0;
 }

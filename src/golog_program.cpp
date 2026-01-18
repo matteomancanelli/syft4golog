@@ -350,7 +350,6 @@ void TFCVisitor::visit(const GologProgramSequence& x) {
             }
         }
         // function C
-        // TODO. Check this function...
         CUDD::BDD cc = var_mgr_->cudd_mgr()->bddOne();
         if (i == 0) cc *= !result_.final_functions_[arg];
         else 
