@@ -241,7 +241,7 @@ ExplicitStateProgramGraph ExplicitStateProgramGraph::from_golog_program(
                 CUDD::ADD tf = var_mgr->cudd_mgr()->constant(program_id[ts->successor_program_]) 
                     * (ts->guard_.Add() * (action_name_to_bdd.at(p.first->action_)).Add() * continuation_function.at(program_id[ts->successor_program_]).Add());
                 transition_function[program_id.at(p.first->program_)] += tf;
-                dmap[p.first->program_] += (ts->guard_ * (action_name_to_bdd.at(p.first->action_)));
+                dmap[p.first->program_] += (ts->guard_ * (action_name_to_bdd.at(p.first->action_)) * continuation_function.at(program_id[ts->successor_program_]));
             }
         }
 
