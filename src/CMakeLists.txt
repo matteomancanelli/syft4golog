@@ -16,6 +16,8 @@ set(SOURCES
     ${FLEX_golog_lexer_OUTPUTS}
     ${CMAKE_CURRENT_SOURCE_DIR}/golog_driver.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/program_graph.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/base_golog_synthesizer.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/compositional_golog_synthesizer.cpp
 )
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR} ${EXT_INCLUDE_PATH})

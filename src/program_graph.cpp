@@ -186,7 +186,7 @@ ExplicitStateProgramGraph ExplicitStateProgramGraph::from_golog_program(
         TFCResult tfc = get_tfc(golog_program, var_mgr, action_name_to_bdd, action_name_to_pre_bdd);
 
         // debug
-        tfc.print();
+        // tfc.print();
 
         const auto& t = tfc.transitions_;
         const auto& f = tfc.final_functions_;
@@ -208,25 +208,25 @@ ExplicitStateProgramGraph ExplicitStateProgramGraph::from_golog_program(
         // map golog programs to indexes of ADDs
         golog_map program_id;
 
-        std::cout << std::endl;
-        std::cout << "State count: " << state_count << std::endl;
+        // std::cout << std::endl;
+        // std::cout << "State count: " << state_count << std::endl;
         for (const auto& [program, _] : f) {
             // assign state id to program
             program_id[program] = program_id.size();
-            std::cout << "Subprogram: " << to_string(program) << ". Assigned ID: " << program_id[program]  << std::endl;
+            // std::cout << "Subprogram: " << to_string(program) << ". Assigned ID: " << program_id[program]  << std::endl;
             // set final states function for program
             final_states.at(program_id.at(program)) = f.at(program);
-            std::cout << "Final states function for ID " << program_id[program] << ": "  << final_states.at(program_id.at(program)) << std::endl;;
+            // std::cout << "Final states function for ID " << program_id[program] << ": "  << final_states.at(program_id.at(program)) << std::endl;;
             // set unique continuation function for program
             bdd_set cfs = c.at(program);
             CUDD::BDD cf = var_mgr->cudd_mgr()->bddZero();
             for (const auto& b : cfs) cf += b;
             continuation_function.at(program_id.at(program)) = std::move(cf);
-            std::cout << "Continuation function for ID " << program_id[program] << ": "  << continuation_function.at(program_id.at(program)) << std::endl;
+            // std::cout << "Continuation function for ID " << program_id[program] << ": "  << continuation_function.at(program_id.at(program)) << std::endl;
         }
-        std::cout << "Subprogram: und. Assigned ID: " << sink_state << std::endl;
-        std::cout << "Final states function for ID " << sink_state << ": "  << final_states[sink_state] << std::endl;;
-        std::cout << "Continuation function for ID " << sink_state << ": "  << continuation_function[sink_state] << std::endl;
+        // std::cout << "Subprogram: und. Assigned ID: " << sink_state << std::endl;
+        // std::cout << "Final states function for ID " << sink_state << ": "  << final_states[sink_state] << std::endl;;
+        // std::cout << "Continuation function for ID " << sink_state << ": "  << continuation_function[sink_state] << std::endl;
 
         // transition function
 
@@ -256,7 +256,7 @@ ExplicitStateProgramGraph ExplicitStateProgramGraph::from_golog_program(
             var_mgr->cudd_mgr()->constant(sink_state);
 
         std::size_t initial_state = program_id[golog_program];
-        std::cout << "Initial state: " << initial_state << std::endl; 
+        // std::cout << "Initial state: " << initial_state << std::endl; 
 
         ExplicitStateProgramGraph pg(var_mgr);
         pg.initial_state_ = std::move(initial_state);

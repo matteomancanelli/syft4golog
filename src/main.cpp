@@ -13,20 +13,21 @@
 #include"golog_driver.hpp"
 #include"scanner_internal.hpp"
 #include"program_graph.h"
+#include"compositional_golog_synthesizer.h"
 
 extern "C" int yylex() { return 0; } ;
 
 int main(int argc, char ** argv) {
 
-    std::cout << "Parsing and transforming domain to DFA..." << std::flush;
-    std::shared_ptr<Syft::VarMgr> var_mgr = std::make_shared<Syft::VarMgr>(); 
+    // std::cout << "Parsing and transforming domain to DFA..." << std::flush;
+    // std::shared_ptr<Syft::VarMgr> var_mgr = std::make_shared<Syft::VarMgr>(); 
 
-    std::string domain_file = "../examples/fond/domain.pddl";
-    std::string init_file = "../examples/fond/test1.pddl";
-    Domain domain(var_mgr, domain_file, init_file);
+    // std::string domain_file = "../examples/fond/domain.pddl";
+    // std::string init_file = "../examples/fond/test1.pddl";
+    // Domain domain(var_mgr, domain_file, init_file);
 
-    auto domain_dfa = domain.to_symbolic();
-    domain.print_domain();
+    // auto domain_dfa = domain.to_symbolic();
+    // domain.print_domain();
 
     // var_mgr->print_mgr();
 
@@ -451,37 +452,52 @@ int main(int argc, char ** argv) {
 
     std::cout << "##### TEST program graph construction #####" << std::endl;
 
-    std::string main_program =
-        "(pick_up_from_table_b1;(nil | put_down_b1));[on_table_b1]?";
+    // std::string main_program =
+    //     "(pick_up_from_table_b1;(nil | put_down_b1));[on_table_b1]?";
     // std::string main_program =
     //     "(((pick_up_from_table_b1;(nil | put_down_b1)) | (pick_up_from_table_b2;(nil | put_down_b2)))*;[on_table_b1 && on_table_b2]?)";
     // std::string main_program =
     //     "(pick_up_from_table_b1;nop)|(pick_up_from_table_b1;put_down_b1)"; // not SQSD
+    // std::string main_program = "nil";
 
-    auto driver = std::make_shared<GologDriver>(); 
+    // auto driver = std::make_shared<GologDriver>(); 
 
-    std::stringstream program_stream(main_program);
-    driver->parse(program_stream);
-    golog_ptr parsed_program = driver -> get_result();
+    // std::stringstream program_stream(main_program);
+    // driver->parse(program_stream);
+    // golog_ptr parsed_program = driver -> get_result();
 
-    std::cout << "Testing program: " << to_string(parsed_program) << std::endl;
+    // std::cout << "Testing program: " << to_string(parsed_program) << std::endl;
 
-    // std::cout << "Transforming to program graph..." << std::flush;
-    auto pg = ExplicitStateProgramGraph::from_golog_program(
-        parsed_program,
-        var_mgr,
-        domain.get_action_name_to_bdd(),
-        domain.get_action_name_to_pre_bdd()
-    );
-    // std::cout << "DONE" << std::endl;
+    // // std::cout << "Transforming to program graph..." << std::flush;
+    // auto pg = ExplicitStateProgramGraph::from_golog_program(
+    //     parsed_program,
+    //     var_mgr,
+    //     domain.get_action_name_to_bdd(),
+    //     domain.get_action_name_to_pre_bdd()
+    // );
+    // // std::cout << "DONE" << std::endl;
 
-    pg.dump_dot("pg.dot");
+    // pg.dump_dot("pg.dot");
 
-    auto sdfa = pg.to_symbolic();
+    // auto sdfa = pg.to_symbolic();
 
-    sdfa.dump_dot("pg_sdfa.dot");
+    // sdfa.dump_dot("pg_sdfa.dot");
 
-    var_mgr->print_mgr();
+    // var_mgr->print_mgr();
+
+    std::cout << "##### Test Golog synthesis #####" << std::endl;
+
+    std::cout << "Testing synthesis for golog programs" << std::endl;
+
+    std::string domain_file = "../examples/fond/domain.pddl";
+    std::string init_file = "../examples/fond/test1.pddl";
+    std::string golog_file = "./../../examples/fond/golog1.golog";
+
+    auto golog_synthesizer = CompositionalGologSynthesizer(domain_file, init_file, golog_file);
+    auto result = golog_synthesizer.run();
+
+    if (result.realizability) std::cout << "[syft4golog] Synthesis is REALIZABLE" << std::endl;
+    else std::cout << "[syft4golog] synthesis is UNREALIZABLE" << std::endl;
     
     return 0;
 }

@@ -6,8 +6,9 @@
 class CompositionalGologSynthesizer : public BaseGologSynthesizer {
 
     public:
-        Syft::SynthesisResult run() const override;
+        using BaseGologSynthesizer::BaseGologSynthesizer; // inherits construcotr
 
+        Syft::SynthesisResult run() const override;
 };
 
 #endif

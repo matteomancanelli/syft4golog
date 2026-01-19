@@ -2,6 +2,7 @@
 #define GOLOG_SYNTHESIZER_H
 
 #include<memory>
+#include<fstream>
 
 #include "domain.h"
 #include "synthesis/header/VarMgr.h"
@@ -10,6 +11,7 @@
 #include "synthesis/header/game/Reachability.hpp"
 
 #include "program_graph.h"
+#include "golog_driver.hpp"
 
 class BaseGologSynthesizer{
 
