@@ -286,8 +286,9 @@ class Domain {
             return action_name_to_pre_bdd_;
         }
 
-    private:
         std::vector<int> to_bits(int i, std::size_t size) const;
+
+    private:
         void parse_sas();
         std::pair<std::unordered_set<std::string>, std::unordered_set<std::string>> get_action_reaction_names() const;
         std::pair<std::string, std::string> get_ltlf_action_reaction_vars(const std::unordered_set<std::string>& action_names, const std::unordered_set<std::string>& reaction_names);
