@@ -397,7 +397,7 @@ void TFCVisitor::visit(const GologProgramChoice& x) {
 
         // functions F and C for choice program
         f += result_.final_functions_[arg];
-        c += result_.final_functions_[arg];
+        c += result_.continuation_functions_[arg];
     }
     result_.final_functions_[x_ptr] = f;
     result_.continuation_functions_[x_ptr] = c;
