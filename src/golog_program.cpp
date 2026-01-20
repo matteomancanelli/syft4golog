@@ -424,7 +424,8 @@ void TFCVisitor::visit(const GologProgramIteration& x) {
         if (x_arg -> equals(p.first->program_)) {
             program_action_ptr pa = std::make_shared<ProgramActionPair>(x_ptr, p.first->action_);
             for (const auto& t : p.second) {
-                CUDD::BDD guard = (!result_.final_functions_[x_arg]) * t->guard_;
+                // CUDD::BDD guard = (!result_.final_functions_[x_arg]) * t->guard_;
+                CUDD::BDD guard = t->guard_;
                 if (guard != var_mgr_->cudd_mgr() -> bddZero()) {
                     // take successor program d' of arg
                     golog_ptr succ = t->successor_program_;
