@@ -238,10 +238,19 @@ ExplicitStateProgramGraph ExplicitStateProgramGraph::from_golog_program(
             // program_action_ptr p.first -> in turn, (program, action_name)
             // transition set p.second -> transition set, each obj being (guard, successor program)
             for (const auto& ts : p.second) {
+                // CUDD::ADD tf = var_mgr->cudd_mgr()->constant(program_id[ts->successor_program_]) 
+                //     * (ts->guard_.Add() * (action_name_to_bdd.at(p.first->action_)).Add() * (continuation_function.at(program_id[p.first->program_]).Add()));
+                // transition_function[program_id.at(p.first->program_)] += tf;
+                // dmap[p.first->program_] += (ts->guard_ * (action_name_to_bdd.at(p.first->action_)) * (continuation_function.at(program_id[p.first->program_])));
+                // alternative solutions
+                // CUDD::ADD tf = var_mgr->cudd_mgr()->constant(program_id[ts->successor_program_]) 
+                //     * (ts->guard_.Add() * (action_name_to_bdd.at(p.first->action_)).Add() * continuation_function.at(program_id[ts->successor_program_]).Add());
+                // transition_function[program_id.at(p.first->program_)] += tf;
+                // dmap[p.first->program_] += (ts->guard_ * (action_name_to_bdd.at(p.first->action_)) * continuation_function.at(program_id[ts->successor_program_]));
                 CUDD::ADD tf = var_mgr->cudd_mgr()->constant(program_id[ts->successor_program_]) 
-                    * (ts->guard_.Add() * (action_name_to_bdd.at(p.first->action_)).Add() * continuation_function.at(program_id[ts->successor_program_]).Add());
+                    * (ts->guard_.Add() * (action_name_to_bdd.at(p.first->action_)).Add());
                 transition_function[program_id.at(p.first->program_)] += tf;
-                dmap[p.first->program_] += (ts->guard_ * (action_name_to_bdd.at(p.first->action_)) * continuation_function.at(program_id[ts->successor_program_]));
+                dmap[p.first->program_] += (ts->guard_ * (action_name_to_bdd.at(p.first->action_)));
             }
         }
 

@@ -9,6 +9,11 @@ class CompositionalGologSynthesizer : public BaseGologSynthesizer {
         using BaseGologSynthesizer::BaseGologSynthesizer; // inherits construcotr
 
         Syft::SynthesisResult run() const override;
+        void interactive(
+            const Domain& domain, 
+            const Syft::SymbolicStateDfa& game_arena,
+            const Syft::SynthesisResult& result
+        ) const;
 };
 
 #endif

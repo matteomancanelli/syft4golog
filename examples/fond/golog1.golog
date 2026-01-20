@@ -1,1 +1,1 @@
-pick_up_b2_b1
+pick_up_b1_b2;(nil|put_down_b1);[on_table_b1]?

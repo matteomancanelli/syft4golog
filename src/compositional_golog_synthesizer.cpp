@@ -35,5 +35,164 @@ Syft::SynthesisResult CompositionalGologSynthesizer::run() const {
     auto result = synthesizer.run();
     std::cout << "DONE" << std::endl;
 
+    // if (result.realizability) interactive(*domain_, game_arena, result);
+
     return result;
-} 
+}
+
+void CompositionalGologSynthesizer::interactive(
+    const Domain& domain,
+    const Syft::SymbolicStateDfa& dfa_game,
+    const Syft::SynthesisResult& result
+) const {
+    // keep in mind order of variables
+    // (F, Act, React, Z)
+    std::vector<int> state = dfa_game.initial_state();
+    std::vector<CUDD::BDD> transition_function = dfa_game.transition_function();
+    CUDD::BDD final_states = dfa_game.final_states();
+    int number_of_fluents = domain.get_vars().size() + 2;
+    bool is_reaction_valid = false;
+
+    var_mgr_->print_mgr();
+    domain.print_domain();
+
+    std::cout << "##################################" << std::endl;
+    std::cout << "[INTERACTIVE] Interactive strategy debugging mode" << std::endl;
+
+    // Obtain the indexes for the agent error state and the environment error state
+    std::vector<std::string> vars_ = domain.get_vars();
+    std::size_t agent_error_index = vars_.size();
+    std::size_t env_error_index = vars_.size() + 1;
+
+    // Obtain the agent error bdd and the environment error bdd from the transition function
+    CUDD::BDD agent_error_bdd = dfa_game.transition_function()[agent_error_index];
+    CUDD::BDD env_error_bdd = dfa_game.transition_function()[env_error_index];
+
+    CUDD::BDD winning_states =  result.winning_states;
+    std::unordered_map<int, CUDD::BDD> output_function = result.transducer.get()->get_output_function();
+    std::unordered_map<int, std::string> id_to_var = var_mgr_->get_index_to_name_map(); 
+    std::map<int, std::string> action_id_to_action_name = domain.get_id_to_action_name();
+
+    while (true) {
+        std::vector<int> transition;
+        std::vector<int> Z_fluents;
+        std::vector<int> actions_bit;
+        std::vector<int> reactions_bit;
+        std::vector<int> goal_ltlf;
+		std::vector<int> valid_actions;
+		std::vector<int> valid_reactions;
+		std::vector<int> legal_reactions;
+        std::vector<int> state_eval;
+        is_reaction_valid = false;
+
+        std::cout << "[INTERACTIVE] State vector: ";
+        for (const auto& v : state) std::cout << v;
+        std::cout << std::endl;
+        std::string string_state = "{";
+        for (int i = 0; i < vars_.size(); ++i)
+            if (state[i] == 1) string_state += vars_[i] + ", ";
+        string_state = string_state.substr(0, string_state.size() - 2) + "}";
+        std::cout << "[INTERACTIVE] State vars: " << string_state << std::endl;
+        std::cout << "[INTERACTIVE] Final states: " << final_states << std::endl;
+
+        // construct input to strategy
+        state_eval.insert(state_eval.end(), state.begin(), state.begin() + number_of_fluents);
+        for(int i = 0; i < var_mgr_->output_variable_count(); ++i)
+          state_eval.push_back(1);
+        for(int i = 0; i < var_mgr_->input_variable_count(); ++i)
+          state_eval.push_back(1);
+        state_eval.insert(state_eval.end(), state.begin() + number_of_fluents, state.end());
+
+        std::cout << "[INTERACTIVE] The current state is: ";
+        if (var_mgr_->state_variable(dfa_game.automaton_id(), vars_.size()).Eval(state_eval.data()).IsOne()){ //agent_error_bdd.Eval(state_eval.data()).IsOne()){//
+            std::cout << "- AGENT ERROR STATE -";
+            std::cout << "Termination" << std::endl;
+            return;
+        }
+        else if (var_mgr_->state_variable(dfa_game.automaton_id(), vars_.size()+1).Eval(state_eval.data()).IsOne()){ //env_error_bdd.Eval(state_eval.data()).IsOne()){//
+            std::cout << "- ENVIRONMENT ERROR STATE -";
+            std::cout << "Termination" << std::endl;
+            return;
+        } 
+        else if (final_states.Eval(state_eval.data()).IsOne()){
+            std::cout << "- FINAL -"<< std::endl;
+            std::cout << "[INTERACTIVE] The goal has been reached. Termination" << std::endl;
+            return;
+        } 
+        else std::cout << "- NOT FINAL -";
+        std::cout << std::endl;
+
+        Z_fluents.insert(Z_fluents.end(), state.begin(), state.begin() + number_of_fluents);
+        goal_ltlf.insert(goal_ltlf.end(), state.begin() + number_of_fluents, state.end());
+        transition.insert(transition.end(), Z_fluents.begin(), Z_fluents.end());
+
+        // action selection
+        for (int i = 0; i < id_to_var.size(); ++i) {
+            std::string var = id_to_var[i];
+            int agent_eval;
+            if (var_mgr_->is_output_variable(var)) {
+                std::cout << "Variable: " << var << std::flush;
+                std::cout << ". Agent output (0 = false, 1 = true): " << std::flush;
+                agent_eval = output_function[i].Eval(state_eval.data()).IsOne();
+                std::cout << agent_eval << std::endl;
+                actions_bit.push_back(agent_eval);
+            }
+        }
+
+        // retrieve action name
+        int selected_act_id = -1;
+        for (const auto& act_id : action_id_to_action_name) {
+            std::vector<int> iter_action;
+            iter_action = domain.to_bits(act_id.first, var_mgr_->output_variable_count());
+            if(std::equal(iter_action.begin(), iter_action.end(), actions_bit.begin())) {
+                std::cout << "[INTERACTIVE] ID: " << act_id.first << " - Action: " << act_id.second << std::endl;
+                selected_act_id = act_id.first;
+                for (auto b : actions_bit) transition.push_back(b);
+                break;
+            } else continue;          
+        }
+
+        // reaction selection
+        auto id_to_reaction_name = domain.get_id_to_reaction_name();
+        int react_id;
+        while(!is_reaction_valid) {
+            valid_reactions.clear();
+            std::cout << "[INTERACTIVE] Valid reactions:" << std::endl;
+          	for(const auto& id_react : id_to_reaction_name) {
+          		std::vector<int> check_reaction;
+          		check_reaction.insert(check_reaction.end(), Z_fluents.begin(), Z_fluents.end());
+                check_reaction.insert(check_reaction.end(), actions_bit.begin(), actions_bit.end());
+          		for (const auto& b : domain.to_bits(id_react.first, var_mgr_->input_variable_count())) 
+                    check_reaction.push_back(b);
+                check_reaction.insert(check_reaction.end(), goal_ltlf.begin(), goal_ltlf.end());
+              	if(!(env_error_bdd.Eval(check_reaction.data()).IsOne())) {
+                    valid_reactions.push_back(id_react.first);
+              		std::cout << "ID: " << id_react.first << " - Reaction: " << id_react.second << std::endl;
+              	}
+            }
+            std::cout << "[INTERACTIVE] Insert ID of environment action: ";
+            std::cin >> react_id;
+            if(std::count(valid_reactions.begin(), valid_reactions.end(), react_id) > 0) {
+            	is_reaction_valid = true;
+            	for (const auto& b : domain.to_bits(react_id, var_mgr_->input_variable_count())) 
+                    transition.push_back(b);
+            } else if (react_id == -1){
+                std::cout << "[INTERACTIVE] STOPPING INTERACTIVE STRATEGY." << std::endl;
+                return;
+            } else {
+              	std::cout << "[INTERACTIVE] Chosen Rection is not valid. Choose again." << std::endl;
+            }
+            std::cout << std::endl;
+        }
+
+        // state transition
+        transition.insert(transition.end(), goal_ltlf.begin(), goal_ltlf.end());
+        std::vector<int> new_state;
+        for (int i = 0; i < transition_function.size(); ++i) {
+            new_state.push_back(transition_function[i].Eval(transition.data()).IsOne());
+        }
+        state = new_state;
+        std::cout << std::endl;
+    }
+    return;
+}
