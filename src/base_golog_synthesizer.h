@@ -18,12 +18,12 @@ class BaseGologSynthesizer{
     protected:
         std::shared_ptr<Syft::VarMgr> var_mgr_;
         std::shared_ptr<Domain> domain_;
-        golog_ptr golog_program_;
+        golog_ptr golog_program_;        
 
-        Syft::SymbolicStateDfa compose(
+        virtual Syft::SymbolicStateDfa compose(
             const Syft::SymbolicStateDfa& domain_dfa,
             const Syft::SymbolicStateDfa& golog_program_dfa
-        ) const;
+        ) const = 0;
 
     public:
         BaseGologSynthesizer(

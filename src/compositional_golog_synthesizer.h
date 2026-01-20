@@ -5,6 +5,12 @@
 
 class CompositionalGologSynthesizer : public BaseGologSynthesizer {
 
+    protected:
+        Syft::SymbolicStateDfa compose(
+            const Syft::SymbolicStateDfa& domain_dfa,
+            const Syft::SymbolicStateDfa& golog_dfa
+        ) const override;
+
     public:
         using BaseGologSynthesizer::BaseGologSynthesizer; // inherits construcotr
 
