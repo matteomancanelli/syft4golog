@@ -18,7 +18,9 @@ class BaseGologSynthesizer{
     protected:
         std::shared_ptr<Syft::VarMgr> var_mgr_;
         std::shared_ptr<Domain> domain_;
-        golog_ptr golog_program_;        
+        golog_ptr golog_program_;
+        std::shared_ptr<Syft::SymbolicStateDfa> game_arena_;
+        std::shared_ptr<Syft::SynthesisResult> result_;        
 
         virtual Syft::SymbolicStateDfa compose(
             const Syft::SymbolicStateDfa& domain_dfa,
@@ -32,7 +34,8 @@ class BaseGologSynthesizer{
             const std::string& golog_file
         );
 
-        virtual Syft::SynthesisResult run() const = 0;
+        virtual std::shared_ptr<Syft::SynthesisResult> run() = 0;
+        virtual void interactive() const = 0; 
 };
 
 #endif

@@ -450,7 +450,7 @@ int main(int argc, char ** argv) {
     //     std::cout << "}" << std::endl;
     // }
 
-    std::cout << "##### TEST program graph construction #####" << std::endl;
+    // std::cout << "##### TEST program graph construction #####" << std::endl;
 
     // std::string main_program =
     //     "(pick_up_from_table_b1;(nil | put_down_b1));[on_table_b1]?";
@@ -496,7 +496,10 @@ int main(int argc, char ** argv) {
     auto golog_synthesizer = CompositionalGologSynthesizer(domain_file, init_file, golog_file);
     auto result = golog_synthesizer.run();
 
-    if (result.realizability) std::cout << "[syft4golog] Synthesis is REALIZABLE" << std::endl;
+    if (result->realizability) {
+        std::cout << "[syft4golog] Synthesis is REALIZABLE" << std::endl;
+        golog_synthesizer.interactive();
+    }
     else std::cout << "[syft4golog] synthesis is UNREALIZABLE" << std::endl;
     
     return 0;

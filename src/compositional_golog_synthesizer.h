@@ -14,12 +14,8 @@ class CompositionalGologSynthesizer : public BaseGologSynthesizer {
     public:
         using BaseGologSynthesizer::BaseGologSynthesizer; // inherits construcotr
 
-        Syft::SynthesisResult run() const override;
-        void interactive(
-            const Domain& domain, 
-            const Syft::SymbolicStateDfa& game_arena,
-            const Syft::SynthesisResult& result
-        ) const;
+        std::shared_ptr<Syft::SynthesisResult> run() override;
+        void interactive() const override;
 };
 
 #endif

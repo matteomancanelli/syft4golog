@@ -1,6 +1,6 @@
 #include"compositional_golog_synthesizer.h"
 
-Syft::SynthesisResult CompositionalGologSynthesizer::run() const {
+std::shared_ptr<Syft::SynthesisResult> CompositionalGologSynthesizer::run() {
 
     // transform domain and Golog program into DFA
     std::cout << "[syft4golog] Transforming domain to symbolic..." << std::flush;
@@ -17,7 +17,8 @@ Syft::SynthesisResult CompositionalGologSynthesizer::run() const {
     
     // construct game arena via composition
     std::cout << "[syft4golog] Constructing game arena..." << std::flush;
-    auto game_arena = compose(domain_dfa, golog_dfa);
+    // auto game_arena = compose(domain_dfa, golog_dfa);
+    game_arena_ = std::make_shared<Syft::SymbolicStateDfa>(std::move(compose(domain_dfa, golog_dfa)));
     std::cout << "DONE" << std::endl;
 
     // debug
@@ -26,18 +27,16 @@ Syft::SynthesisResult CompositionalGologSynthesizer::run() const {
     // solve game and return result
     std::cout << "[syft4golog] Reducing synthesis to reachability..." << std::flush;
     auto synthesizer = Syft::Reachability(
-        game_arena,
+        *game_arena_,
         Syft::Player::Agent, // starting player
         Syft::Player::Agent, // protagonist player
-        game_arena.final_states(),
+        game_arena_->final_states(),
         var_mgr_->cudd_mgr()->bddOne() // state space = true
     );
-    auto result = synthesizer.run();
+    result_ = std::make_shared<Syft::SynthesisResult>(std::move(synthesizer.run()));
     std::cout << "DONE" << std::endl;
 
-    // if (result.realizability) interactive(*domain_, game_arena, result);
-
-    return result;
+    return result_;
 }
 
 Syft::SymbolicStateDfa CompositionalGologSynthesizer::compose(
@@ -85,38 +84,34 @@ Syft::SymbolicStateDfa CompositionalGologSynthesizer::compose(
   return composed_dfa;
 }
 
-void CompositionalGologSynthesizer::interactive(
-    const Domain& domain,
-    const Syft::SymbolicStateDfa& dfa_game,
-    const Syft::SynthesisResult& result
-) const {
+void CompositionalGologSynthesizer::interactive() const {
     // keep in mind order of variables
     // (F, Act, React, Z)
-    std::vector<int> state = dfa_game.initial_state();
-    std::vector<CUDD::BDD> transition_function = dfa_game.transition_function();
-    CUDD::BDD final_states = dfa_game.final_states();
-    int number_of_fluents = domain.get_vars().size() + 2;
+    std::vector<int> state = game_arena_->initial_state();
+    std::vector<CUDD::BDD> transition_function = game_arena_->transition_function();
+    CUDD::BDD final_states = game_arena_->final_states();
+    int number_of_fluents = domain_->get_vars().size() + 2;
     bool is_reaction_valid = false;
 
     var_mgr_->print_mgr();
-    domain.print_domain();
+    domain_->print_domain();
 
     std::cout << "##################################" << std::endl;
     std::cout << "[INTERACTIVE] Interactive strategy debugging mode" << std::endl;
 
     // Obtain the indexes for the agent error state and the environment error state
-    std::vector<std::string> vars_ = domain.get_vars();
+    std::vector<std::string> vars_ = domain_->get_vars();
     std::size_t agent_error_index = vars_.size();
     std::size_t env_error_index = vars_.size() + 1;
 
     // Obtain the agent error bdd and the environment error bdd from the transition function
-    CUDD::BDD agent_error_bdd = dfa_game.transition_function()[agent_error_index];
-    CUDD::BDD env_error_bdd = dfa_game.transition_function()[env_error_index];
+    CUDD::BDD agent_error_bdd = game_arena_->transition_function()[agent_error_index];
+    CUDD::BDD env_error_bdd = game_arena_->transition_function()[env_error_index];
 
-    CUDD::BDD winning_states =  result.winning_states;
-    std::unordered_map<int, CUDD::BDD> output_function = result.transducer.get()->get_output_function();
+    CUDD::BDD winning_states =  result_->winning_states;
+    std::unordered_map<int, CUDD::BDD> output_function = result_->transducer.get()->get_output_function();
     std::unordered_map<int, std::string> id_to_var = var_mgr_->get_index_to_name_map(); 
-    std::map<int, std::string> action_id_to_action_name = domain.get_id_to_action_name();
+    std::map<int, std::string> action_id_to_action_name = domain_->get_id_to_action_name();
 
     while (true) {
         std::vector<int> transition;
@@ -149,12 +144,12 @@ void CompositionalGologSynthesizer::interactive(
         state_eval.insert(state_eval.end(), state.begin() + number_of_fluents, state.end());
 
         std::cout << "[INTERACTIVE] The current state is: ";
-        if (var_mgr_->state_variable(dfa_game.automaton_id(), vars_.size()).Eval(state_eval.data()).IsOne()){ //agent_error_bdd.Eval(state_eval.data()).IsOne()){//
+        if (var_mgr_->state_variable(game_arena_->automaton_id(), vars_.size()).Eval(state_eval.data()).IsOne()){ //agent_error_bdd.Eval(state_eval.data()).IsOne()){//
             std::cout << "- AGENT ERROR STATE -";
             std::cout << "Termination" << std::endl;
             return;
         }
-        else if (var_mgr_->state_variable(dfa_game.automaton_id(), vars_.size()+1).Eval(state_eval.data()).IsOne()){ //env_error_bdd.Eval(state_eval.data()).IsOne()){//
+        else if (var_mgr_->state_variable(game_arena_->automaton_id(), vars_.size()+1).Eval(state_eval.data()).IsOne()){ //env_error_bdd.Eval(state_eval.data()).IsOne()){//
             std::cout << "- ENVIRONMENT ERROR STATE -";
             std::cout << "Termination" << std::endl;
             return;
@@ -188,7 +183,7 @@ void CompositionalGologSynthesizer::interactive(
         int selected_act_id = -1;
         for (const auto& act_id : action_id_to_action_name) {
             std::vector<int> iter_action;
-            iter_action = domain.to_bits(act_id.first, var_mgr_->output_variable_count());
+            iter_action = domain_->to_bits(act_id.first, var_mgr_->output_variable_count());
             if(std::equal(iter_action.begin(), iter_action.end(), actions_bit.begin())) {
                 std::cout << "[INTERACTIVE] ID: " << act_id.first << " - Action: " << act_id.second << std::endl;
                 selected_act_id = act_id.first;
@@ -198,7 +193,7 @@ void CompositionalGologSynthesizer::interactive(
         }
 
         // reaction selection
-        auto id_to_reaction_name = domain.get_id_to_reaction_name();
+        auto id_to_reaction_name = domain_->get_id_to_reaction_name();
         int react_id;
         while(!is_reaction_valid) {
             valid_reactions.clear();
@@ -207,7 +202,7 @@ void CompositionalGologSynthesizer::interactive(
           		std::vector<int> check_reaction;
           		check_reaction.insert(check_reaction.end(), Z_fluents.begin(), Z_fluents.end());
                 check_reaction.insert(check_reaction.end(), actions_bit.begin(), actions_bit.end());
-          		for (const auto& b : domain.to_bits(id_react.first, var_mgr_->input_variable_count())) 
+          		for (const auto& b : domain_->to_bits(id_react.first, var_mgr_->input_variable_count())) 
                     check_reaction.push_back(b);
                 check_reaction.insert(check_reaction.end(), goal_ltlf.begin(), goal_ltlf.end());
               	if(!(env_error_bdd.Eval(check_reaction.data()).IsOne())) {
@@ -219,7 +214,7 @@ void CompositionalGologSynthesizer::interactive(
             std::cin >> react_id;
             if(std::count(valid_reactions.begin(), valid_reactions.end(), react_id) > 0) {
             	is_reaction_valid = true;
-            	for (const auto& b : domain.to_bits(react_id, var_mgr_->input_variable_count())) 
+            	for (const auto& b : domain_->to_bits(react_id, var_mgr_->input_variable_count())) 
                     transition.push_back(b);
             } else if (react_id == -1){
                 std::cout << "[INTERACTIVE] STOPPING INTERACTIVE STRATEGY." << std::endl;
