@@ -217,11 +217,8 @@ ExplicitStateProgramGraph ExplicitStateProgramGraph::from_golog_program(
             // set final states function for program
             final_states.at(program_id.at(program)) = f.at(program);
             // std::cout << "Final states function for ID " << program_id[program] << ": "  << final_states.at(program_id.at(program)) << std::endl;;
-            // set unique continuation function for program
-            bdd_set cfs = c.at(program);
-            CUDD::BDD cf = var_mgr->cudd_mgr()->bddZero();
-            for (const auto& b : cfs) cf += b;
-            continuation_function.at(program_id.at(program)) = std::move(cf);
+            // set continuation function
+            continuation_function.at(program_id.at(program)) = c.at(program);
             // std::cout << "Continuation function for ID " << program_id[program] << ": "  << continuation_function.at(program_id.at(program)) << std::endl;
         }
         // std::cout << "Subprogram: und. Assigned ID: " << sink_state << std::endl;
@@ -238,19 +235,22 @@ ExplicitStateProgramGraph ExplicitStateProgramGraph::from_golog_program(
             // program_action_ptr p.first -> in turn, (program, action_name)
             // transition set p.second -> transition set, each obj being (guard, successor program)
             for (const auto& ts : p.second) {
-                // CUDD::ADD tf = var_mgr->cudd_mgr()->constant(program_id[ts->successor_program_]) 
-                //     * (ts->guard_.Add() * (action_name_to_bdd.at(p.first->action_)).Add() * (continuation_function.at(program_id[p.first->program_]).Add()));
-                // transition_function[program_id.at(p.first->program_)] += tf;
-                // dmap[p.first->program_] += (ts->guard_ * (action_name_to_bdd.at(p.first->action_)) * (continuation_function.at(program_id[p.first->program_])));
+                // check continuation function in current state
+                CUDD::ADD tf = var_mgr->cudd_mgr()->constant(program_id[ts->successor_program_]) 
+                    * (ts->guard_.Add() * (action_name_to_bdd.at(p.first->action_)).Add() * (continuation_function.at(program_id[p.first->program_]).Add()));
+                transition_function[program_id.at(p.first->program_)] += tf;
+                dmap[p.first->program_] += (ts->guard_ * (action_name_to_bdd.at(p.first->action_)) * (continuation_function.at(program_id[p.first->program_])));
                 // alternative solutions
+                // check continuation function in successor state
                 // CUDD::ADD tf = var_mgr->cudd_mgr()->constant(program_id[ts->successor_program_]) 
                 //     * (ts->guard_.Add() * (action_name_to_bdd.at(p.first->action_)).Add() * continuation_function.at(program_id[ts->successor_program_]).Add());
                 // transition_function[program_id.at(p.first->program_)] += tf;
                 // dmap[p.first->program_] += (ts->guard_ * (action_name_to_bdd.at(p.first->action_)) * continuation_function.at(program_id[ts->successor_program_]));
-                CUDD::ADD tf = var_mgr->cudd_mgr()->constant(program_id[ts->successor_program_]) 
-                    * (ts->guard_.Add() * (action_name_to_bdd.at(p.first->action_)).Add());
-                transition_function[program_id.at(p.first->program_)] += tf;
-                dmap[p.first->program_] += (ts->guard_ * (action_name_to_bdd.at(p.first->action_)));
+                // drop continuation function
+                // CUDD::ADD tf = var_mgr->cudd_mgr()->constant(program_id[ts->successor_program_]) 
+                //     * (ts->guard_.Add() * (action_name_to_bdd.at(p.first->action_)).Add());
+                // transition_function[program_id.at(p.first->program_)] += tf;
+                // dmap[p.first->program_] += (ts->guard_ * (action_name_to_bdd.at(p.first->action_)));
             }
         }
 

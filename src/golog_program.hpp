@@ -221,7 +221,7 @@ typedef std::unordered_set<std::shared_ptr<const ProgramTransition>, ProgramTran
 struct TFCResult {
     std::unordered_map<program_action_ptr, transition_set, ProgramActionPairHash, ProgramActionPairEquals> transitions_;
     std::unordered_map<golog_ptr, CUDD::BDD, GologProgramHash, GologProgramEquals> final_functions_; // F
-    std::unordered_map<golog_ptr, bdd_set, GologProgramHash, GologProgramEquals> continuation_functions_; // C
+    std::unordered_map<golog_ptr, CUDD::BDD, GologProgramHash, GologProgramEquals> continuation_functions_;
 
     void print() const; 
 };

@@ -212,12 +212,8 @@ void TFCResult::print() const {
 
     std::cout << std::endl;
     std::cout << "Continuation functions (C): " << std::endl;
-    for (const auto& [subprog, f_set] : continuation_functions_) {
-        std::cout << "C(" << to_string(subprog) << ") = {" << std::flush;
-        for (const auto& f: f_set) {
-            std::cout << " - " << f << " - " << std::flush; 
-        }
-        std::cout << "}" << std::endl;
+    for (const auto& [subprog, c] : continuation_functions_) {
+        std::cout << "C(" << to_string(subprog) << ") = " << c << std::endl;
     }
 }
 
@@ -235,7 +231,7 @@ void TFCVisitor::visit(const GologProgramNil& x) {
     result_.final_functions_.emplace(x_ptr, bdd_true);
 
     // function C
-    result_.continuation_functions_[x_ptr].insert(bdd_true);
+    result_.continuation_functions_.emplace(x_ptr, bdd_true);
 }
 
 void TFCVisitor::visit(const GologProgramUnd& x) {
@@ -273,8 +269,8 @@ void TFCVisitor::visit(const GologProgramAction& x) {
     result_.final_functions_.emplace(x_ptr, bdd_false);
 
     // function C
-    // generate continuation functions using rule C(a) = {True}
-    result_.continuation_functions_[x_ptr].insert(bdd_true);
+    // generate continuation functions using rule C(a) = True
+    result_.continuation_functions_[x_ptr] = bdd_true;
 }
 
 void TFCVisitor::visit(const GologProgramTest& x) {
@@ -292,8 +288,8 @@ void TFCVisitor::visit(const GologProgramTest& x) {
     result_.final_functions_.emplace(x_ptr, bdd);
 
     // function C
-    // generate continuation function using the rule F([\varphi]?) = {\varphi}
-    result_.continuation_functions_[x_ptr].insert(bdd);
+    // generate continuation function using the rule F([\varphi]?) = \varphi
+    result_.continuation_functions_[x_ptr] = bdd;
 }
 
 void TFCVisitor::visit(const GologProgramSequence& x) {
@@ -305,7 +301,7 @@ void TFCVisitor::visit(const GologProgramSequence& x) {
 
     // data structures for functions F and C
     CUDD::BDD f = var_mgr_->cudd_mgr()->bddOne();
-    bdd_set c;
+    CUDD::BDD c = var_mgr_->cudd_mgr()->bddOne();
 
     for (int i = 0; i < x_args.size(); ++i) {
         const auto& arg = x_args[i];
@@ -350,13 +346,11 @@ void TFCVisitor::visit(const GologProgramSequence& x) {
             }
         }
         // function C
-        CUDD::BDD cc = var_mgr_->cudd_mgr()->bddOne();
-        if (i == 0) cc *= !result_.final_functions_[arg];
-        else 
-            {for (int j = 0; j<i; ++j) 
-            cc *= result_.final_functions_[x_args[j]];}
-        for (const auto& c_bdd : result_.continuation_functions_[arg])
-            c.insert(cc * c_bdd);
+        CUDD::BDD cc = var_mgr_->cudd_mgr() -> bddOne();
+        for (int j = 0; j < i; ++j)
+            cc *= result_.final_functions_[x_args[j]];
+        cc *= result_.continuation_functions_[arg];
+        c += cc;
     }
     result_.final_functions_[x_ptr] = f;
     result_.continuation_functions_[x_ptr] = c;
@@ -371,7 +365,7 @@ void TFCVisitor::visit(const GologProgramChoice& x) {
 
     // data structures for results of functions F and C
     CUDD::BDD f = var_mgr_->cudd_mgr()->bddZero();
-    bdd_set c;
+    CUDD::BDD c = var_mgr_->cudd_mgr()->bddZero();
 
     for (const auto& arg : x_args) {
         // debug
@@ -403,7 +397,7 @@ void TFCVisitor::visit(const GologProgramChoice& x) {
 
         // functions F and C for choice program
         f += result_.final_functions_[arg];
-        c.insert(result_.continuation_functions_[arg].begin(), result_.continuation_functions_[arg].end());
+        c += result_.final_functions_[arg];
     }
     result_.final_functions_[x_ptr] = f;
     result_.continuation_functions_[x_ptr] = c;
@@ -454,7 +448,7 @@ void TFCVisitor::visit(const GologProgramIteration& x) {
     // data structures for functions F and C of iteration program
     CUDD::BDD bdd_true = var_mgr_->cudd_mgr()->bddOne();
     result_.final_functions_[x_ptr] = bdd_true;
-    result_.continuation_functions_[x_ptr] = {bdd_true};
+    result_.continuation_functions_[x_ptr] = bdd_true;
 }
 
 TFCResult TFCVisitor::apply(const GologProgramNode& x) {
