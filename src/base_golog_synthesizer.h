@@ -9,9 +9,12 @@
 #include "synthesis/header/automata/SymbolicStateDfa.h"
 #include "synthesis/header/Synthesizer.h"
 #include "synthesis/header/game/Reachability.hpp"
+#include "synthesis/header/Stopwatch.h"
 
 #include "program_graph.h"
 #include "golog_driver.hpp"
+
+using Stopwatch = Syft::Stopwatch;
 
 class BaseGologSynthesizer{
 
@@ -20,7 +23,8 @@ class BaseGologSynthesizer{
         std::shared_ptr<Domain> domain_;
         golog_ptr golog_program_;
         std::shared_ptr<Syft::SymbolicStateDfa> game_arena_;
-        std::shared_ptr<Syft::SynthesisResult> result_;        
+        std::shared_ptr<Syft::SynthesisResult> result_;
+        std::vector<double> running_times_;        
 
         virtual Syft::SymbolicStateDfa compose(
             const Syft::SymbolicStateDfa& domain_dfa,
@@ -33,6 +37,8 @@ class BaseGologSynthesizer{
             const std::string& init_file,
             const std::string& golog_file
         );
+
+        std::vector<double> running_times() const {return running_times_;}
 
         virtual std::shared_ptr<Syft::SynthesisResult> run() = 0;
         virtual void interactive() const = 0; 

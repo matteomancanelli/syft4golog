@@ -17,6 +17,12 @@
 
 extern "C" int yylex() { return 0; } ;
 
+double sumVec(const std::vector<double>& vec) {
+    double result;
+    for (const auto& v: vec) result += v;
+    return result;
+}
+
 int main(int argc, char ** argv) {
 
     // std::cout << "Parsing and transforming domain to DFA..." << std::flush;
@@ -497,10 +503,10 @@ int main(int argc, char ** argv) {
     auto result = golog_synthesizer.run();
 
     if (result->realizability) {
-        std::cout << "[syft4golog] Synthesis is REALIZABLE" << std::endl;
-        golog_synthesizer.interactive();
+        std::cout << "[syft4golog] Synthesis is REALIZABLE [" << sumVec(golog_synthesizer.running_times()) << " s]" << std::endl;
+        // golog_synthesizer.interactive();
     }
-    else std::cout << "[syft4golog] synthesis is UNREALIZABLE" << std::endl;
-    
+    else std::cout << "[syft4golog] synthesis is UNREALIZABLE [" << sumVec(golog_synthesizer.running_times()) << " s]" << std::endl;
+
     return 0;
 }
