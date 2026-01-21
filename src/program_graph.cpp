@@ -192,10 +192,40 @@ ExplicitStateProgramGraph ExplicitStateProgramGraph::from_golog_program(
         const auto& f = tfc.final_functions_;
         const auto& c = tfc.continuation_functions_;
 
+        // collect reachable programs only
+        golog_set visited_programs, reachable_programs;
+        golog_queue frontier; 
+        frontier.push(golog_program);
+        reachable_programs.insert(golog_program);
+        while (!frontier.empty()) {
+            golog_ptr curr = frontier.front();
+            frontier.pop();
+            visited_programs.insert(curr);
+            for (const auto& [pa, ts] : t) {
+                if (curr->equals(pa->program_)) {
+                    for (const auto& tt : ts) {
+                        const auto& succ = tt -> successor_program_;
+                        reachable_programs.insert(succ);
+                        if (visited_programs.find(succ) == visited_programs.end()) {
+                            frontier.push(succ);
+                        }
+                    }
+                }
+            }
+        }
+
+        // debug
+        // std::cout << std::endl;
+        // std::cout << "Reachable programs: " << std::endl;
+        // for (const auto& pg : reachable_programs)
+        //     std::cout << to_string(pg) << std::endl;
+        // std::cout << std::endl;
+
         // number of states is number of subprograms + 1
-        // the latter state is the sink for determinization
-        const auto& state_count = f.size() + 1; 
-        const auto sink_state = state_count - 1;
+        // state 0 is the sink
+        // const auto& state_count = f.size() + 1; 
+        const auto& state_count = reachable_programs.size() + 1;
+        const auto sink_state = 0;
         CUDD::ADD add_zero = var_mgr->cudd_mgr()->addZero();
         CUDD::BDD bdd_zero = var_mgr->cudd_mgr()->bddZero();
 
@@ -210,9 +240,12 @@ ExplicitStateProgramGraph ExplicitStateProgramGraph::from_golog_program(
 
         // std::cout << std::endl;
         // std::cout << "State count: " << state_count << std::endl;
-        for (const auto& [program, _] : f) {
+        // std::cout << "Subprogram: und. Assigned ID: " << sink_state << std::endl;
+        // std::cout << "Final states function for ID " << sink_state << ": "  << final_states[sink_state] << std::endl;;
+        // std::cout << "Continuation function for ID " << sink_state << ": "  << continuation_function[sink_state] << std::endl;
+        for (const auto& program : reachable_programs) {
             // assign state id to program
-            program_id[program] = program_id.size();
+            program_id[program] = program_id.size() + 1; // recall that state 0 is the sink
             // std::cout << "Subprogram: " << to_string(program) << ". Assigned ID: " << program_id[program]  << std::endl;
             // set final states function for program
             final_states.at(program_id.at(program)) = f.at(program);
@@ -221,16 +254,8 @@ ExplicitStateProgramGraph ExplicitStateProgramGraph::from_golog_program(
             continuation_function.at(program_id.at(program)) = c.at(program);
             // std::cout << "Continuation function for ID " << program_id[program] << ": "  << continuation_function.at(program_id.at(program)) << std::endl;
         }
-        // std::cout << "Subprogram: und. Assigned ID: " << sink_state << std::endl;
-        // std::cout << "Final states function for ID " << sink_state << ": "  << final_states[sink_state] << std::endl;;
-        // std::cout << "Continuation function for ID " << sink_state << ": "  << continuation_function[sink_state] << std::endl;
 
         // transition function
-
-        // used for determiniziation
-        std::unordered_map<golog_ptr, CUDD::BDD, GologProgramHash, GologProgramEquals> dmap;
-        for (const auto& [program, _]: program_id) {dmap[program] = var_mgr->cudd_mgr()->bddZero();}
-
         for (const auto& p : t) {
             // program_action_ptr p.first -> in turn, (program, action_name)
             // transition set p.second -> transition set, each obj being (guard, successor program)
@@ -239,33 +264,11 @@ ExplicitStateProgramGraph ExplicitStateProgramGraph::from_golog_program(
                 CUDD::ADD tf = var_mgr->cudd_mgr()->constant(program_id[ts->successor_program_]) 
                     * (ts->guard_.Add() * (action_name_to_bdd.at(p.first->action_)).Add() * (continuation_function.at(program_id[p.first->program_]).Add()));
                 transition_function[program_id.at(p.first->program_)] += tf;
-                dmap[p.first->program_] += (ts->guard_ * (action_name_to_bdd.at(p.first->action_)) * (continuation_function.at(program_id[p.first->program_])));
-                // alternative solutions
-                // check continuation function in successor state
-                // CUDD::ADD tf = var_mgr->cudd_mgr()->constant(program_id[ts->successor_program_]) 
-                //     * (ts->guard_.Add() * (action_name_to_bdd.at(p.first->action_)).Add() * continuation_function.at(program_id[ts->successor_program_]).Add());
-                // transition_function[program_id.at(p.first->program_)] += tf;
-                // dmap[p.first->program_] += (ts->guard_ * (action_name_to_bdd.at(p.first->action_)) * continuation_function.at(program_id[ts->successor_program_]));
-                // drop continuation function
-                // CUDD::ADD tf = var_mgr->cudd_mgr()->constant(program_id[ts->successor_program_]) 
-                //     * (ts->guard_.Add() * (action_name_to_bdd.at(p.first->action_)).Add());
-                // transition_function[program_id.at(p.first->program_)] += tf;
-                // dmap[p.first->program_] += (ts->guard_ * (action_name_to_bdd.at(p.first->action_)));
             }
         }
 
-        // determinize undefined transitions by redirecting them to sink state
-        for (const auto& [program, _ ]: program_id) {
-            transition_function[program_id.at(program)] += 
-                (var_mgr->cudd_mgr()->constant(sink_state) * (!dmap[program]).Add());
-        }
-
-        // sink state is a rejecting sink
-        transition_function[sink_state] =
-            var_mgr->cudd_mgr()->constant(sink_state);
-
         std::size_t initial_state = program_id[golog_program];
-        // std::cout << "Initial state: " << initial_state << std::endl; 
+        std::cout << "Initial state: " << initial_state << std::endl; 
 
         ExplicitStateProgramGraph pg(var_mgr);
         pg.initial_state_ = std::move(initial_state);
