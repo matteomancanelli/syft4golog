@@ -320,7 +320,8 @@ void TFCVisitor::visit(const GologProgramSequence& x) {
         f *= result_.final_functions_[arg];
 
         // function T
-        for (const auto& p : result_.transitions_) {
+        auto transitions_snapshot = result_.transitions_;
+        for (const auto& p : transitions_snapshot) {
             if (arg -> equals(p.first->program_)) {
                 program_action_ptr pa = std::make_shared<ProgramActionPair>(x_ptr, p.first->action_);
                 for (const auto& t : p.second) {
@@ -341,7 +342,7 @@ void TFCVisitor::visit(const GologProgramSequence& x) {
                         result_.transitions_[pa].insert(t_ptr);
                         if (visited_programs_.find(succ_program) == visited_programs_.end())
                             programs_queue_.push(succ_program);
-                    } 
+                    }
                 }
             }
         }
@@ -381,7 +382,8 @@ void TFCVisitor::visit(const GologProgramChoice& x) {
         }
 
         // construct transitions T for choice program
-        for (const auto& p : result_.transitions_) {
+        auto transitions_snapshot = result_.transitions_;
+        for (const auto& p : transitions_snapshot) {
             if (arg -> equals(p.first->program_)) {
                 auto pa_main = std::make_shared<ProgramActionPair>(x_ptr, p.first->action_);
                 for (const auto& t : p.second) {
@@ -420,7 +422,8 @@ void TFCVisitor::visit(const GologProgramIteration& x) {
         x_arg->accept(*this);
     }
 
-    for (const auto& p : result_.transitions_) {
+    auto transitions_snapshot = result_.transitions_;
+    for (const auto& p : transitions_snapshot) {
         if (x_arg -> equals(p.first->program_)) {
             program_action_ptr pa = std::make_shared<ProgramActionPair>(x_ptr, p.first->action_);
             for (const auto& t : p.second) {
@@ -433,11 +436,9 @@ void TFCVisitor::visit(const GologProgramIteration& x) {
                     golog_vec vv = {succ, x_ptr};
                     golog_ptr succ_program = std::make_shared<const GologProgramSequence>(vv);
                     transition_ptr t_ptr = std::make_shared<ProgramTransition>(guard, succ_program);
-
                     // std::cout << "Generated transition. T(" << to_string(pa->program_)
                     //           << ", " << pa->action_ << ") = ("
                     //           << guard << ", " << to_string(succ_program) << ")" << std::endl;
-
                     result_.transitions_[pa].insert(t_ptr);
                     // if new successor program has not been visited, push it into the queue
                     if (visited_programs_.find(succ_program) == visited_programs_.end())
