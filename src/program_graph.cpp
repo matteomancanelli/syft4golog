@@ -268,7 +268,7 @@ ExplicitStateProgramGraph ExplicitStateProgramGraph::from_golog_program(
         }
 
         std::size_t initial_state = program_id[golog_program];
-        std::cout << "Initial state: " << initial_state << std::endl; 
+        // std::cout << "Initial state: " << initial_state << std::endl; 
 
         ExplicitStateProgramGraph pg(var_mgr);
         pg.initial_state_ = std::move(initial_state);
