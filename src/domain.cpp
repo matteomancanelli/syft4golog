@@ -1008,5 +1008,10 @@ void Domain::parse_sas() {
             // std::cout << pair.first << ": " << pair.second << std::endl;
         // std::cout << std::endl;
 
+        // std::cout << "Action name to BDD: " << std::endl;
+        // for (const auto& pair : action_name_to_bdd_)
+        //     std::cout << pair.first << ": " << pair.second << std::endl;
+        // std::cout << std::endl;
+ 
         std::cout << "##########################################" << std::endl;
     }
