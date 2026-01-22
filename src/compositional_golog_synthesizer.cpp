@@ -153,15 +153,15 @@ void CompositionalGologSynthesizer::interactive() const {
         std::vector<int> state_eval;
         is_reaction_valid = false;
 
-        std::cout << "[INTERACTIVE] State vector: ";
-        for (const auto& v : state) std::cout << v;
-        std::cout << std::endl;
+        // std::cout << "[INTERACTIVE] State vector: ";
+        // for (const auto& v : state) std::cout << v;
+        // std::cout << std::endl;
         std::string string_state = "{";
         for (int i = 0; i < vars_.size(); ++i)
             if (state[i] == 1) string_state += vars_[i] + ", ";
         string_state = string_state.substr(0, string_state.size() - 2) + "}";
         std::cout << "[INTERACTIVE] State vars: " << string_state << std::endl;
-        std::cout << "[INTERACTIVE] Final states: " << final_states << std::endl;
+        // std::cout << "[INTERACTIVE] Final states: " << final_states << std::endl;
 
         // construct input to strategy
         state_eval.insert(state_eval.end(), state.begin(), state.begin() + number_of_fluents);
@@ -250,7 +250,6 @@ void CompositionalGologSynthesizer::interactive() const {
             } else {
               	std::cout << "[INTERACTIVE] Chosen Rection is not valid. Choose again." << std::endl;
             }
-            std::cout << std::endl;
         }
 
         // state transition
