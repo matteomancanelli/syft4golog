@@ -231,6 +231,9 @@ struct TFCResult {
  */
 class TFCVisitor : public GologProgramNodeVisitor {
 
+    private:
+        void get_continuation_function(const golog_ptr& program);
+
     public:
         std::shared_ptr<Syft::VarMgr> var_mgr_;
         std::unordered_map<std::string, CUDD::BDD> action_name_to_bdd_;

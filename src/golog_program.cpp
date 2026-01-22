@@ -217,6 +217,20 @@ void TFCResult::print() const {
     }
 }
 
+void TFCVisitor::get_continuation_function(const golog_ptr& program) {
+    CUDD::BDD continuation_function = var_mgr_->cudd_mgr()->bddZero();
+
+    for (const auto& [pa, t] : result_.transitions_) {
+        if (program -> equals(pa->program_)) {
+            for (const auto& tt : t) continuation_function += tt->guard_;
+        }
+    }
+
+    continuation_function += result_.final_functions_[program];
+    result_.continuation_functions_[program] = std::move(continuation_function);
+    return;
+}
+
 void TFCVisitor::visit(const GologProgramNil& x) {
     // std::cout << "Currently visiting program: nil" << std::endl;
 
@@ -231,7 +245,7 @@ void TFCVisitor::visit(const GologProgramNil& x) {
     result_.final_functions_.emplace(x_ptr, bdd_true);
 
     // function C
-    result_.continuation_functions_.emplace(x_ptr, bdd_true);
+    get_continuation_function(x_ptr);
 }
 
 void TFCVisitor::visit(const GologProgramUnd& x) {
@@ -270,7 +284,7 @@ void TFCVisitor::visit(const GologProgramAction& x) {
 
     // function C
     // generate continuation functions using rule C(a) = True
-    result_.continuation_functions_[x_ptr] = bdd_true;
+    get_continuation_function(x_ptr);
 }
 
 void TFCVisitor::visit(const GologProgramTest& x) {
@@ -289,7 +303,7 @@ void TFCVisitor::visit(const GologProgramTest& x) {
 
     // function C
     // generate continuation function using the rule F([\varphi]?) = \varphi
-    result_.continuation_functions_[x_ptr] = bdd;
+    get_continuation_function(x_ptr);
 }
 
 void TFCVisitor::visit(const GologProgramSequence& x) {
@@ -299,9 +313,8 @@ void TFCVisitor::visit(const GologProgramSequence& x) {
     // debug
     // std::cout << "Currently visiting program sequence: " << to_string(x_ptr) << std::endl;
 
-    // data structures for functions F and C
+    // data structures for function F
     CUDD::BDD f = var_mgr_->cudd_mgr()->bddOne();
-    CUDD::BDD c = var_mgr_->cudd_mgr()->bddOne();
 
     for (int i = 0; i < x_args.size(); ++i) {
         const auto& arg = x_args[i];
@@ -346,15 +359,10 @@ void TFCVisitor::visit(const GologProgramSequence& x) {
                 }
             }
         }
-        // function C
-        CUDD::BDD cc = var_mgr_->cudd_mgr() -> bddOne();
-        for (int j = 0; j < i; ++j)
-            cc *= result_.final_functions_[x_args[j]];
-        cc *= result_.continuation_functions_[arg];
-        c += cc;
     }
     result_.final_functions_[x_ptr] = f;
-    result_.continuation_functions_[x_ptr] = c;
+    // function C
+    get_continuation_function(x_ptr);
 }
 
 void TFCVisitor::visit(const GologProgramChoice& x) {
@@ -366,7 +374,6 @@ void TFCVisitor::visit(const GologProgramChoice& x) {
 
     // data structures for results of functions F and C
     CUDD::BDD f = var_mgr_->cudd_mgr()->bddZero();
-    CUDD::BDD c = var_mgr_->cudd_mgr()->bddZero();
 
     for (const auto& arg : x_args) {
         // debug
@@ -377,7 +384,6 @@ void TFCVisitor::visit(const GologProgramChoice& x) {
         auto it = visited_programs_.find(arg);
         if (it == visited_programs_.end()) { 
             visited_programs_.insert(arg);
-            // this->apply(*arg);
             arg->accept(*this);
         }
 
@@ -397,12 +403,12 @@ void TFCVisitor::visit(const GologProgramChoice& x) {
             }
         }
 
-        // functions F and C for choice program
+        // function F
         f += result_.final_functions_[arg];
-        c += result_.continuation_functions_[arg];
     }
     result_.final_functions_[x_ptr] = f;
-    result_.continuation_functions_[x_ptr] = c;
+    // function C
+    get_continuation_function(x_ptr);
 }
 
 void TFCVisitor::visit(const GologProgramIteration& x) {
@@ -418,7 +424,6 @@ void TFCVisitor::visit(const GologProgramIteration& x) {
     auto it = visited_programs_.find(x_arg);
     if (it == visited_programs_.end()) {
         visited_programs_.insert(x_arg);
-        // this->apply(*x_arg);
         x_arg->accept(*this);
     }
 
@@ -427,7 +432,6 @@ void TFCVisitor::visit(const GologProgramIteration& x) {
         if (x_arg -> equals(p.first->program_)) {
             program_action_ptr pa = std::make_shared<ProgramActionPair>(x_ptr, p.first->action_);
             for (const auto& t : p.second) {
-                // CUDD::BDD guard = (!result_.final_functions_[x_arg]) * t->guard_;
                 CUDD::BDD guard = t->guard_;
                 if (guard != var_mgr_->cudd_mgr() -> bddZero()) {
                     // take successor program d' of arg
@@ -450,7 +454,7 @@ void TFCVisitor::visit(const GologProgramIteration& x) {
     // data structures for functions F and C of iteration program
     CUDD::BDD bdd_true = var_mgr_->cudd_mgr()->bddOne();
     result_.final_functions_[x_ptr] = bdd_true;
-    result_.continuation_functions_[x_ptr] = bdd_true;
+    get_continuation_function(x_ptr);
 }
 
 TFCResult TFCVisitor::apply(const GologProgramNode& x) {
