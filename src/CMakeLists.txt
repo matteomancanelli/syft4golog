@@ -25,10 +25,10 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR} ${EXT_INCLUDE_PATH})
 link_directories(/opt/eclipse_prolog/eclipse_prolog/lib/x86_64_linux)
 
 # Create the executable
-add_executable(GologExecutable ${SOURCES})
+add_executable(syft4golog ${SOURCES})
 
 # Explicitly list libraries to avoid linking with Flex
-target_link_libraries(GologExecutable 
+target_link_libraries(syft4golog 
     ${CUDD_LIBRARIES}
     ${MONA_DFA_LIBRARIES}
     ${MONA_BDD_LIBRARIES}
@@ -47,6 +47,6 @@ install(
 )
 
 # Install the executable
-install(TARGETS GologExecutable
+install(TARGETS syft4golog
     RUNTIME DESTINATION bin
 )

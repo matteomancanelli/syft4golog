@@ -8,7 +8,7 @@ std::shared_ptr<Syft::SynthesisResult> CompositionalGologSynthesizer::run() {
     // transform domain and Golog program into DFA
     std::cout << "[syft4golog] Transforming domain to symbolic..." << std::flush;
 
-    auto domain_dfa = domain_->to_symbolic();
+    domain_sdfa_ = std::make_shared<Syft::SymbolicStateDfa>(std::move(domain_->to_symbolic()));
 
     double t_domain2dfa = domain2dfa.stop().count() / 1000.0;
     running_times_.push_back(t_domain2dfa);
@@ -19,12 +19,12 @@ std::shared_ptr<Syft::SynthesisResult> CompositionalGologSynthesizer::run() {
     golog2pg.start();
 
     std::cout << "[syft4golog] Transforming Golog to symbolic program graph..." << std::flush;
-    auto golog_program_graph = ExplicitStateProgramGraph::from_golog_program(golog_program_, var_mgr_, domain_->get_action_name_to_bdd(), domain_->get_action_name_to_pre_bdd());
-    auto golog_dfa = golog_program_graph.to_symbolic();
+    pg_ = std::make_shared<ExplicitStateProgramGraph>(ExplicitStateProgramGraph::from_golog_program(golog_program_, var_mgr_, domain_->get_action_name_to_bdd(), domain_->get_action_name_to_pre_bdd()));
+
+    auto golog_dfa = pg_->to_symbolic();
     // debug
     // golog_program_graph.dump_dot("pg.dot");
     // golog_dfa.dump_dot("pg_sdfa.dot");
-
     double t_golog2pg = golog2pg.stop().count() / 1000.0;
     running_times_.push_back(t_golog2pg);
 
@@ -35,7 +35,7 @@ std::shared_ptr<Syft::SynthesisResult> CompositionalGologSynthesizer::run() {
     game_construction.start();
 
     std::cout << "[syft4golog] Constructing game arena..." << std::flush;
-    game_arena_ = std::make_shared<Syft::SymbolicStateDfa>(std::move(compose(domain_dfa, golog_dfa)));
+    game_arena_ = std::make_shared<Syft::SymbolicStateDfa>(std::move(compose(*domain_sdfa_, golog_dfa)));
 
     double t_game_construction = game_construction.stop().count() / 1000.0;
     running_times_.push_back(t_game_construction);
@@ -121,8 +121,9 @@ void CompositionalGologSynthesizer::interactive() const {
     int number_of_fluents = domain_->get_vars().size() + 2;
     bool is_reaction_valid = false;
 
-    var_mgr_->print_mgr();
-    domain_->print_domain();
+    // debug
+    // var_mgr_->print_mgr();
+    // domain_->print_domain();
 
     std::cout << "##################################" << std::endl;
     std::cout << "[INTERACTIVE] Interactive strategy debugging mode" << std::endl;
