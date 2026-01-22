@@ -1,1 +1,8 @@
 ((pick_up_b1_b2);(nil | put_down_b1)|(pick_up_b2_b1);(nil | put_down_b2))*;[on_table_b2 && on_table_b1]?
+
+# test programs (only first line is read)
+(pick_up_b1_b2);(nil | put_down_b1);[on_table_b1]? # REALIZABLE
+((pick_up_b1_b2);(nil | put_down_b1)|(pick_up_b2_b1);(nil | put_down_b2))*;[on_table_b2 && on_table_b1]? # REALIZABLE
+(nil | pick_up_b1_b2 | pick_up_b2_b1 | put_down_b1 | put_down_b2)*;[on_table_b1 && on_table_b2]? # REALIZABLE
+(pick_up_b1_b2 | pick_up_b2_b1 | put_down_b1 | put_down_b2);(pick_up_b1_b2 | pick_up_b2_b1 | put_down_b1 | put_down_b2);[on_table_b1 && on_table_b2]? # UNREALIZABLE
+(nop | pick_up_b1_b2 | pick_up_b2_b1 | put_down_b1 | put_down_b2);(nop | pick_up_b1_b2 | pick_up_b2_b1 | put_down_b1 | put_down_b2);[on_table_b1 && on_table_b2]? # REALIZABLE
