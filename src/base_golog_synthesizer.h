@@ -27,10 +27,10 @@ class BaseGologSynthesizer{
         std::shared_ptr<Syft::SynthesisResult> result_;
         std::vector<double> running_times_;        
 
-        virtual Syft::SymbolicStateDfa compose(
+        Syft::SymbolicStateDfa compose(
             const Syft::SymbolicStateDfa& domain_dfa,
             const Syft::SymbolicStateDfa& golog_program_dfa
-        ) const = 0;
+        ) const;
 
     public:
         BaseGologSynthesizer(
@@ -42,11 +42,11 @@ class BaseGologSynthesizer{
         std::vector<double> running_times() const {return running_times_;}
 
         virtual std::shared_ptr<Syft::SynthesisResult> run() = 0;
-        virtual void interactive() const = 0; 
+        void interactive() const; 
         virtual void dump_ts() const = 0;
-        virtual void dump_domain() const = 0;
-        virtual void print_domain() const = 0;
-        virtual void dump_strategy() const = 0; 
+        void dump_domain() const {domain_sdfa_->dump_dot("domain.dot");}
+        void print_domain() const {domain_->print_domain();}
+        void dump_strategy() const {result_->transducer->dump_dot("strategy.dot");}
 };
 
 #endif
