@@ -16,6 +16,7 @@
 #include"scanner_internal.hpp"
 #include"program_graph.h"
 #include"compositional_golog_synthesizer.h"
+#include"ldlf_golog_synthesizer.h"
 
 extern "C" int yylex() { return 0; } ;
 
@@ -33,6 +34,9 @@ int main(int argc, char ** argv) {
 
     std::string domain_file, init_file, golog_file;
     int dump_strategy_flag = 0, dump_ts_flag = 0, dump_domain_dfa_flag = 0, print_domain_flag = 0, interactive_flag = 0;
+    int algorithm_id = 1;
+    std::string outfile = "";
+
 
     CLI::Option* domain_file_option =
         app.add_option("-d,--domain-file", domain_file, "Path to NDBAT domain specification file (PDDL FOND)") ->
@@ -45,6 +49,9 @@ int main(int argc, char ** argv) {
     CLI::Option* golog_file_option =
         app.add_option("-g,--golog-file", golog_file, "Path to Golog program file") ->
         required() -> check(CLI::ExistingFile);
+
+    CLI::Option* algorithm_id_option =
+        app.add_option("-a,--algorithm-id", algorithm_id, "Synthesis algorithm (1 = Compositional; 2 = LDLf. Default = 1)");        
 
     CLI::Option* dump_ts_flag_option =
         app.add_option("-t,--dump-ts", dump_ts_flag, "Dump program graph/DFA of Golog program as a ShMTBDD (1 = Yes; 0 = No. Default = 0)");
@@ -61,21 +68,41 @@ int main(int argc, char ** argv) {
     CLI::Option* interactive_flag_option =
         app.add_option("-b,--interactive-debug", interactive_flag, "Interactive debug mode for winning strategy, if any (1 = Yes; 0 = No. Default = 0)");
 
+    CLI::Option* store_results_option =
+        app.add_option("-r,--store-results", outfile, "If set, store results in .csv file");
+
     CLI11_PARSE(app, argc, argv);
 
-    auto golog_synthesizer = CompositionalGologSynthesizer(domain_file, init_file, golog_file);
-    auto result = golog_synthesizer.run();
+    std::shared_ptr<BaseGologSynthesizer> golog_synthesizer;
 
-    if (dump_ts_flag) golog_synthesizer.dump_ts();
-    if (dump_domain_dfa_flag) golog_synthesizer.dump_domain();
-    if (print_domain_flag) golog_synthesizer.print_domain();
+    if (algorithm_id == 1) 
+        golog_synthesizer = std::make_shared<CompositionalGologSynthesizer>(domain_file, init_file, golog_file);
+    else if (algorithm_id == 2)
+        golog_synthesizer = std::make_shared<LDLfGologSynthesizer>(domain_file, init_file, golog_file);
+
+    if (dump_ts_flag) golog_synthesizer->dump_ts();
+    if (dump_domain_dfa_flag) golog_synthesizer->dump_domain();
+    if (print_domain_flag) golog_synthesizer->print_domain();
+
+    auto result = golog_synthesizer->run();
 
     if (result->realizability) {
-        std::cout << "[syft4golog] Synthesis is REALIZABLE [" << sumVec(golog_synthesizer.running_times()) << " s]" << std::endl;
-        if (dump_strategy_flag) golog_synthesizer.dump_strategy();
-        if (interactive_flag) golog_synthesizer.interactive();
+        std::cout << "[syft4golog] Synthesis is REALIZABLE [" << sumVec(golog_synthesizer->running_times()) << " s]" << std::endl;
+        if (dump_strategy_flag) golog_synthesizer->dump_strategy();
+        if (interactive_flag) golog_synthesizer->interactive();
     }
-    else std::cout << "[syft4golog] synthesis is UNREALIZABLE [" << sumVec(golog_synthesizer.running_times()) << " s]" << std::endl;
+    else std::cout << "[syft4golog] synthesis is UNREALIZABLE [" << sumVec(golog_synthesizer->running_times()) << " s]" << std::endl;
+
+    if (outfile != "") {
+        bool exists = std::ifstream(outfile).good();
+        std::ofstream outstream(outfile, std::ios::app);
+        if (!exists)
+            outstream << "Parse Domain (s),Parse Golog(s),Domain2DFA (s),Golog2TS (s),Game Construction (s),Game Resolution (s),Total (s),Algorithm" << std::endl;
+        const auto& runtimes = golog_synthesizer->running_times();
+        outstream << runtimes[0] << "," << runtimes[1] << "," << runtimes[2] << "," << runtimes[3] << "," << runtimes[4] << "," << runtimes[5] << "," << sumVec(runtimes); 
+        if (algorithm_id == 1) outstream << ",Compositional" << std::endl;
+        else if (algorithm_id == 2) outstream << ",LDLf" << std::endl;
+    }
 
     return 0;
 }
@@ -568,58 +595,58 @@ int main(int argc, char ** argv) {
 
 // std::cout << "Tests for transforming Golog programs into LDLf formulas and their corresponding automata" << std::endl;
 
-    // std::cout << "Parsing and transforming domain to DFA..." << std::flush;
-    // std::shared_ptr<Syft::VarMgr> var_mgr = std::make_shared<Syft::VarMgr>(); 
+// std::cout << "Parsing and transforming domain to DFA..." << std::flush;
+// std::shared_ptr<Syft::VarMgr> var_mgr = std::make_shared<Syft::VarMgr>(); 
 
-    // std::string domain_file = "./../../benchmarks/blocksworld/domain.pddl";
-    // std::string init_file = "./../../benchmarks/blocksworld/p02.pddl";
-    // Domain domain(var_mgr, domain_file, init_file);
+// std::string domain_file = "./../../benchmarks/blocksworld/domain.pddl";
+// std::string init_file = "./../../benchmarks/blocksworld/p02.pddl";
+// Domain domain(var_mgr, domain_file, init_file);
 
-    // auto domain_dfa = domain.to_symbolic();
-    // domain.print_domain();
+// auto domain_dfa = domain.to_symbolic();
+// domain.print_domain();
 
-    // var_mgr->print_mgr();
+// var_mgr->print_mgr();
 
-    // // tests here
-    // // std::string main_program = "nil";
-    // // std::string main_program = "nop";
-    // // std::string main_program = "pick_up_b1_b2;put_down_b1";
-    // // std::string main_program = "(nop)*";
-    // // std::string main_program = "pick_up_b1_b2 | pick_up_b2_b1";
-    // // std::string main_program = "(pick_up_b1_b2 | pick_up_b2_b1)*";
-    // // std::string main_program = "nil | nop";
-    // // std::string main_program = "[on_table_b1 && on_table_b2]?";
-    // // std::string main_program = "nop;[on_table_b1 && on_table_b2]?";
-    // // std::string main_program = "[on_table_b1]?;pick_up_from_table_b1";
-    // // std::string main_program = "(pick_up_b1_b2);(nil | put_down_b1);[on_table_b1]?";
-    // std::string main_program = 
-    //     "(((pick_up_b1_b2);(nil | put_down_b1)) | ((pick_up_b2_b1);(nil | put_down_b2)))*;[on_table_b1 && on_table_b2]?";
-    // // std::string main_program = "(nil | pick_up_b1_b2 | pick_up_b2_b1 | put_down_b1 | put_down_b2)*;[on_table_b1 && on_table_b2]?";
-    // // std::string main_program = "(pick_up_b1_b2 | pick_up_b2_b1 | put_down_b1 | put_down_b2);(pick_up_b1_b2 | pick_up_b2_b1 | put_down_b1 | put_down_b2);[on_table_b1 && on_table_b2]?";
-    // // std::string main_program = "(nop | pick_up_b1_b2 | pick_up_b2_b1 | put_down_b1 | put_down_b2);(nop | pick_up_b1_b2 | pick_up_b2_b1 | put_down_b1 | put_down_b2);[on_table_b1 && on_table_b2]?";
+// // tests here
+// // std::string main_program = "nil";
+// // std::string main_program = "nop";
+// // std::string main_program = "pick_up_b1_b2;put_down_b1";
+// // std::string main_program = "(nop)*";
+// // std::string main_program = "pick_up_b1_b2 | pick_up_b2_b1";
+// // std::string main_program = "(pick_up_b1_b2 | pick_up_b2_b1)*";
+// // std::string main_program = "nil | nop";
+// // std::string main_program = "[on_table_b1 && on_table_b2]?";
+// // std::string main_program = "nop;[on_table_b1 && on_table_b2]?";
+// // std::string main_program = "[on_table_b1]?;pick_up_from_table_b1";
+// // std::string main_program = "(pick_up_b1_b2);(nil | put_down_b1);[on_table_b1]?";
+// std::string main_program = 
+//     "(((pick_up_b1_b2);(nil | put_down_b1)) | ((pick_up_b2_b1);(nil | put_down_b2)))*;[on_table_b1 && on_table_b2]?";
+// // std::string main_program = "(nil | pick_up_b1_b2 | pick_up_b2_b1 | put_down_b1 | put_down_b2)*;[on_table_b1 && on_table_b2]?";
+// // std::string main_program = "(pick_up_b1_b2 | pick_up_b2_b1 | put_down_b1 | put_down_b2);(pick_up_b1_b2 | pick_up_b2_b1 | put_down_b1 | put_down_b2);[on_table_b1 && on_table_b2]?";
+// // std::string main_program = "(nop | pick_up_b1_b2 | pick_up_b2_b1 | put_down_b1 | put_down_b2);(nop | pick_up_b1_b2 | pick_up_b2_b1 | put_down_b1 | put_down_b2);[on_table_b1 && on_table_b2]?";
     
-    // auto driver = std::make_shared<GologDriver>(); 
+// auto driver = std::make_shared<GologDriver>(); 
 
-    // std::stringstream program_stream(main_program);
-    // driver->parse(program_stream);
-    // golog_ptr parsed_program = driver->get_result();
+// std::stringstream program_stream(main_program);
+// driver->parse(program_stream);
+// golog_ptr parsed_program = driver->get_result();
 
-    // auto ldlf_driver = std::make_shared<whitemech::lydia::parsers::ldlf::Driver>();
+// auto ldlf_driver = std::make_shared<whitemech::lydia::parsers::ldlf::Driver>();
 
-    // std::cout << "The input program is: " << to_string(parsed_program) << std::endl;
+// std::cout << "The input program is: " << to_string(parsed_program) << std::endl;
 
-    // LydiaAstManager lydia_ast_mgr;
+// LydiaAstManager lydia_ast_mgr;
 
-    // std::cout << "Transforming to LDLf..." << std::flush;
-    // ldlf_ptr ldlf_formula = to_ldlf(lydia_ast_mgr, parsed_program, domain.get_action_name_to_symbols());
+// std::cout << "Transforming to LDLf..." << std::flush;
+// ldlf_ptr ldlf_formula = to_ldlf(lydia_ast_mgr, parsed_program, domain.get_action_name_to_symbols());
 
-    // whitemech::lydia::StrPrinter printer;
-    // auto printer_result = printer.apply(*ldlf_formula);
-    // std::cout << "LDLf formula: " << printer_result << std::endl;
+// whitemech::lydia::StrPrinter printer;
+// auto printer_result = printer.apply(*ldlf_formula);
+// std::cout << "LDLf formula: " << printer_result << std::endl;
 
-    // // construct and print DFA
-    // std::cout << "Transforming into DFA..." << std::flush;
-    // auto dfa = Syft::ExplicitStateDfa::dfa_of_ldlf_formula(*ldlf_formula);
-    // std::cout << "DONE" << std::endl; 
+// // construct and print DFA
+// std::cout << "Transforming into DFA..." << std::flush;
+// auto dfa = Syft::ExplicitStateDfa::dfa_of_ldlf_formula(*ldlf_formula);
+// std::cout << "DONE" << std::endl; 
 
-    // dfa.dfa_print();
+// dfa.dfa_print();
