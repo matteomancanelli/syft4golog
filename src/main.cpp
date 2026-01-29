@@ -6,9 +6,10 @@
 #include <cassert>
 #include <CLI/CLI.hpp>
 
+#include"lydia/utils/print.hpp"
 #include"synthesis/header/VarMgr.h"
 
-#include "domain.h"
+#include"domain.h"
 #include"propositional_logic.hpp"
 #include"golog_program.hpp"
 #include"golog_driver.hpp"
@@ -564,3 +565,61 @@ int main(int argc, char ** argv) {
 //     // golog_synthesizer.interactive();
 // }
 // 
+
+// std::cout << "Tests for transforming Golog programs into LDLf formulas and their corresponding automata" << std::endl;
+
+    // std::cout << "Parsing and transforming domain to DFA..." << std::flush;
+    // std::shared_ptr<Syft::VarMgr> var_mgr = std::make_shared<Syft::VarMgr>(); 
+
+    // std::string domain_file = "./../../benchmarks/blocksworld/domain.pddl";
+    // std::string init_file = "./../../benchmarks/blocksworld/p02.pddl";
+    // Domain domain(var_mgr, domain_file, init_file);
+
+    // auto domain_dfa = domain.to_symbolic();
+    // domain.print_domain();
+
+    // var_mgr->print_mgr();
+
+    // // tests here
+    // // std::string main_program = "nil";
+    // // std::string main_program = "nop";
+    // // std::string main_program = "pick_up_b1_b2;put_down_b1";
+    // // std::string main_program = "(nop)*";
+    // // std::string main_program = "pick_up_b1_b2 | pick_up_b2_b1";
+    // // std::string main_program = "(pick_up_b1_b2 | pick_up_b2_b1)*";
+    // // std::string main_program = "nil | nop";
+    // // std::string main_program = "[on_table_b1 && on_table_b2]?";
+    // // std::string main_program = "nop;[on_table_b1 && on_table_b2]?";
+    // // std::string main_program = "[on_table_b1]?;pick_up_from_table_b1";
+    // // std::string main_program = "(pick_up_b1_b2);(nil | put_down_b1);[on_table_b1]?";
+    // std::string main_program = 
+    //     "(((pick_up_b1_b2);(nil | put_down_b1)) | ((pick_up_b2_b1);(nil | put_down_b2)))*;[on_table_b1 && on_table_b2]?";
+    // // std::string main_program = "(nil | pick_up_b1_b2 | pick_up_b2_b1 | put_down_b1 | put_down_b2)*;[on_table_b1 && on_table_b2]?";
+    // // std::string main_program = "(pick_up_b1_b2 | pick_up_b2_b1 | put_down_b1 | put_down_b2);(pick_up_b1_b2 | pick_up_b2_b1 | put_down_b1 | put_down_b2);[on_table_b1 && on_table_b2]?";
+    // // std::string main_program = "(nop | pick_up_b1_b2 | pick_up_b2_b1 | put_down_b1 | put_down_b2);(nop | pick_up_b1_b2 | pick_up_b2_b1 | put_down_b1 | put_down_b2);[on_table_b1 && on_table_b2]?";
+    
+    // auto driver = std::make_shared<GologDriver>(); 
+
+    // std::stringstream program_stream(main_program);
+    // driver->parse(program_stream);
+    // golog_ptr parsed_program = driver->get_result();
+
+    // auto ldlf_driver = std::make_shared<whitemech::lydia::parsers::ldlf::Driver>();
+
+    // std::cout << "The input program is: " << to_string(parsed_program) << std::endl;
+
+    // LydiaAstManager lydia_ast_mgr;
+
+    // std::cout << "Transforming to LDLf..." << std::flush;
+    // ldlf_ptr ldlf_formula = to_ldlf(lydia_ast_mgr, parsed_program, domain.get_action_name_to_symbols());
+
+    // whitemech::lydia::StrPrinter printer;
+    // auto printer_result = printer.apply(*ldlf_formula);
+    // std::cout << "LDLf formula: " << printer_result << std::endl;
+
+    // // construct and print DFA
+    // std::cout << "Transforming into DFA..." << std::flush;
+    // auto dfa = Syft::ExplicitStateDfa::dfa_of_ldlf_formula(*ldlf_formula);
+    // std::cout << "DONE" << std::endl; 
+
+    // dfa.dfa_print();
