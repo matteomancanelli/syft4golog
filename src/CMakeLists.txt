@@ -18,6 +18,7 @@ set(SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/program_graph.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/base_golog_synthesizer.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/compositional_golog_synthesizer.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/ldlf_golog_synthesizer.cpp
 )
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR} ${EXT_INCLUDE_PATH})
