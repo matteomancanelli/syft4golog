@@ -1,0 +1,1 @@
+((move_g_s1;take_b1_s1;wrap_b1;move_s1_g;drop_wrap_b1_g)|(move_g_s0;take_b0_s0;wrap_b0;move_s0_g;drop_wrap_b0_g))*;[box_at_b0_g && box_at_b1_g]?
