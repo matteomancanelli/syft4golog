@@ -11,6 +11,9 @@
 #include<functional>
 #include<queue>
 
+#include"lydia/logic/pl/base.hpp"
+#include"lydia/logic/ldlf/base.hpp"
+
 #include"propositional_logic.hpp"
 #include"domain.h"
 
@@ -265,5 +268,69 @@ TFCResult get_tfc(const golog_ptr& x,
     const std::shared_ptr<Syft::VarMgr>& var_mgr, 
     const std::unordered_map<std::string, CUDD::BDD>& action_name_to_bdd,
     const std::unordered_map<std::string, CUDD::BDD>& action_name_to_pre_bdd_);
+
+// typedefs for lydia
+typedef whitemech::lydia::LDLfFormula LDLfFormula;
+typedef whitemech::lydia::LDLfTrue LDLfTrue;
+typedef whitemech::lydia::LDLfFalse LDLfFalse;
+typedef whitemech::lydia::LDLfAnd LDLfAnd;
+typedef whitemech::lydia::LDLfOr LDLfOr;
+typedef whitemech::lydia::LDLfNot LDLfNot;
+typedef whitemech::lydia::LDLfTemporal LDLfTemporal;
+typedef whitemech::lydia::LDLfDiamond LDLfDiamond;
+typedef whitemech::lydia::LDLfBox LDLfBox;
+
+typedef whitemech::lydia::RegExp RegExp;
+typedef whitemech::lydia::PropositionalRegExp PropositionaRegExp;
+typedef whitemech::lydia::TestRegExp TestRegExp;
+typedef whitemech::lydia::UnionRegExp UnionRegExp;
+typedef whitemech::lydia::SequenceRegExp SequenceRegExp;
+typedef whitemech::lydia::StarRegExp StarRegExp;
+
+typedef whitemech::lydia::PropositionalFormula LydiaPropositionalFormula;
+typedef whitemech::lydia::PropositionalTrue LydiaPropositionalTrue;
+typedef whitemech::lydia::PropositionalFalse LydiaPropositionalFalse;
+typedef whitemech::lydia::PropositionalAtom LydiaPropositionalAtom;
+typedef whitemech::lydia::PropositionalAnd LydiaPropositionalAnd;
+typedef whitemech::lydia::PropositionalOr LydiaPropositionalOr;
+typedef whitemech::lydia::PropositionalNot LydiaPropositionalNot;
+
+typedef whitemech::lydia::ldlf_ptr ldlf_ptr;
+typedef whitemech::lydia::regex_ptr regex_ptr; 
+typedef whitemech::lydia::vec_regex vec_regex;
+typedef whitemech::lydia::set_regex set_regex;
+typedef whitemech::lydia::prop_ptr prop_ptr;
+typedef whitemech::lydia::set_prop_formulas set_prop_formulas;
+
+typedef whitemech::lydia::AstManager LydiaAstManager;
+
+class Golog2LDLf : public GologProgramNodeVisitor {
+
+    public:
+        std::unordered_map<std::string, std::unordered_set<std::string>> action_name_to_symbols_;
+
+        LydiaAstManager& ast_mgr_;
+        regex_ptr regex_;
+        
+        void visit(const GologProgramNil&) override;
+        void visit(const GologProgramUnd&) override;
+        void visit(const GologProgramAction&) override;
+        void visit(const GologProgramTest&) override;
+        void visit(const GologProgramSequence&) override;
+        void visit(const GologProgramChoice&) override;
+        void visit(const GologProgramIteration&) override;
+
+        Golog2LDLf(
+            LydiaAstManager& mgr,
+            const std::unordered_map<std::string, std::unordered_set<std::string>>& action_name_to_symbols):
+            ast_mgr_(mgr), action_name_to_symbols_(action_name_to_symbols) {}
+
+        regex_ptr apply(const GologProgramNode& x);
+};
+
+ldlf_ptr to_ldlf(
+    LydiaAstManager& mgr,
+    const golog_ptr& x,
+    const std::unordered_map<std::string, std::unordered_set<std::string>>& action_name_to_symbols);
 
 #endif

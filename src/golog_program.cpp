@@ -481,3 +481,84 @@ TFCResult get_tfc(const golog_ptr& x,
     TFCVisitor v(var_mgr, action_name_to_bdd, action_name_to_pre_bdd);
     return v.apply(*x);
 }
+
+void Golog2LDLf::visit(const GologProgramNil& x) {
+    regex_ = ast_mgr_.makeTestRegex(ast_mgr_.makeLdlfTrue());
+}
+
+void Golog2LDLf::visit(const GologProgramUnd& x) {
+    regex_ = ast_mgr_.makeTestRegex(ast_mgr_.makeLdlfFalse());
+}
+
+void Golog2LDLf::visit(const GologProgramAction& x) {
+    // retrieve action name and its binary encoding
+    const auto& action_name = x.action_name_;
+    const auto& action_symbols = action_name_to_symbols_[action_name];
+
+    // transform into conjunction of propositional symbols
+    set_prop_formulas act_conjuncts;
+    for (const auto& s : action_symbols) {
+        if (boost::starts_with(s, "!")) act_conjuncts.insert(ast_mgr_.makePropNot(ast_mgr_.makePropAtom(s.substr(1))));
+        else act_conjuncts.insert(ast_mgr_.makePropAtom(s));
+    }
+    prop_ptr act_formula = ast_mgr_.makePropAnd(act_conjuncts);
+
+    // transform into regex
+    regex_ = ast_mgr_.makePropRegex(act_formula);
+}
+
+void Golog2LDLf::visit(const GologProgramTest& x) {
+    // define the logic to transform Golog program tests into LydiaPropositionaltest
+    // probably another visitor is needed to visit PropositionalLogic and transform it into LydiaPropositionalLogic
+    // alg is as follows
+    // PropositionalLogicNode ----> LydiaPropositionalLogic
+    // LydiaProposiotnalLogic ----> LDLfTes
+}
+
+void Golog2LDLf::visit(const GologProgramSequence& x) {
+    const auto& x_args = x.args_;
+    vec_regex args; 
+    for (const auto& arg : x_args)
+        args.push_back(apply(*arg));
+    regex_ = ast_mgr_.makeSeqRegex(args);
+
+}
+
+void Golog2LDLf::visit(const GologProgramChoice& x) {
+    const auto& x_args = x.args_;
+    set_regex args;
+    for (const auto& arg : x_args)
+        args.insert(apply(*arg));
+    regex_ = ast_mgr_.makeUnionRegex(args);
+}
+
+void Golog2LDLf::visit(const GologProgramIteration& x) {
+    const auto& x_arg = x.arg_;
+    regex_ = ast_mgr_.makeStarRegex(apply(*x_arg));
+}
+
+regex_ptr Golog2LDLf::apply(const GologProgramNode& x) {
+    x.accept(*this);
+    return regex_;
+}
+
+ldlf_ptr to_ldlf(
+    LydiaAstManager& mgr,
+    const golog_ptr& x,
+    const std::unordered_map<std::string, std::unordered_set<std::string>>& action_name_to_symbols) {
+        Golog2LDLf v(mgr, action_name_to_symbols);
+        auto regex = v.apply(*x);
+
+        // LDLf formula last
+        auto ptr_true = v.ast_mgr_.makePropRegex(v.ast_mgr_.makeTrue());
+        auto ptr_ff = v.ast_mgr_.makeLdlfFalse();
+        auto formula = v.ast_mgr_.makeLdlfBox(ptr_true, ptr_ff);
+        auto last = v.ast_mgr_.makeLdlfDiamond(ptr_true, formula);
+        
+        // return <regex>last
+        return v.ast_mgr_.makeLdlfDiamond(regex, last);
+
+        // return <regex>end
+        // return v.ast_mgr_.makeLdlfDiamond(regex, v.ast_mgr_.makeLdlfEnd());
+}
+
