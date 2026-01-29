@@ -304,6 +304,32 @@ typedef whitemech::lydia::set_prop_formulas set_prop_formulas;
 
 typedef whitemech::lydia::AstManager LydiaAstManager;
 
+// class to transform propositional logic in syft4golog
+// to propositional logic in Lydia
+class PL2LydiaPL : public PropositionalLogicNodeVisitor {
+
+    public:
+        LydiaAstManager& ast_mgr_;
+        prop_ptr result_; 
+
+        void visit(const PropositionalLogicTrue&) override;
+        void visit(const PropositionalLogicFalse&) override;
+        void visit(const PropositionalLogicAtom&) override;
+        void visit(const PropositionalLogicNegation&) override;
+        void visit(const PropositionalLogicConjunction&) override;
+        void visit(const PropositionalLogicDisjunction&) override; 
+
+        prop_ptr apply(const PropositionalLogicNode& f);
+
+        PL2LydiaPL(LydiaAstManager& mgr): ast_mgr_(mgr) {}
+
+};
+
+ldlf_ptr to_lydia_prop(
+    LydiaAstManager& mgr,
+    const formula_ptr& f);
+
+// class to transfrom a Golog program into an LDLf formula
 class Golog2LDLf : public GologProgramNodeVisitor {
 
     public:

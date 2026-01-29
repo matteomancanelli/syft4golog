@@ -482,6 +482,54 @@ TFCResult get_tfc(const golog_ptr& x,
     return v.apply(*x);
 }
 
+void PL2LydiaPL::visit(const PropositionalLogicTrue& x) {
+    result_ = ast_mgr_.makeTrue();
+}
+
+void PL2LydiaPL::visit(const PropositionalLogicFalse& x) {
+    result_ = ast_mgr_.makeFalse();
+}
+
+void PL2LydiaPL::visit(const PropositionalLogicAtom& x) {
+    result_ = ast_mgr_.makePropAtom(x.name_);
+}
+
+void PL2LydiaPL::visit(const PropositionalLogicNegation& x) {
+    auto arg = apply(*x.arg_);
+    result_ = ast_mgr_.makePropNot(arg);
+}
+
+void PL2LydiaPL::visit(const PropositionalLogicConjunction& x) {
+    set_prop_formulas args;
+    const auto& x_args = x.args_;
+    for (const auto& arg : x_args)
+        args.insert(apply(*arg));
+    result_ = ast_mgr_.makePropAnd(args);
+}
+
+void PL2LydiaPL::visit(const PropositionalLogicDisjunction& x) {
+    set_prop_formulas args;
+    const auto& x_args = x.args_;
+    for (const auto& arg : x_args)
+        args.insert(apply(*arg));
+    result_ = ast_mgr_.makePropOr(args);
+}
+
+prop_ptr PL2LydiaPL::apply(const PropositionalLogicNode& x) {
+    x.accept(*this);
+    return result_;
+}
+
+ldlf_ptr to_lydia_prop(
+    LydiaAstManager& mgr,
+    const formula_ptr& x) {
+        PL2LydiaPL t(mgr);
+        auto x_pl = t.apply(*x);
+        auto x_regex = t.ast_mgr_.makePropRegex(x_pl);
+        auto x_ldlf = t.ast_mgr_.makeLdlfDiamond(x_regex, t.ast_mgr_.makeLdlfEnd());
+        return x_ldlf;
+}
+
 void Golog2LDLf::visit(const GologProgramNil& x) {
     regex_ = ast_mgr_.makeTestRegex(ast_mgr_.makeLdlfTrue());
 }
@@ -508,11 +556,8 @@ void Golog2LDLf::visit(const GologProgramAction& x) {
 }
 
 void Golog2LDLf::visit(const GologProgramTest& x) {
-    // define the logic to transform Golog program tests into LydiaPropositionaltest
-    // probably another visitor is needed to visit PropositionalLogic and transform it into LydiaPropositionalLogic
-    // alg is as follows
-    // PropositionalLogicNode ----> LydiaPropositionalLogic
-    // LydiaProposiotnalLogic ----> LDLfTes
+    ldlf_ptr test_ldlf = to_lydia_prop(ast_mgr_, x.arg_);
+    regex_ = ast_mgr_.makeTestRegex(test_ldlf);
 }
 
 void Golog2LDLf::visit(const GologProgramSequence& x) {
@@ -521,7 +566,6 @@ void Golog2LDLf::visit(const GologProgramSequence& x) {
     for (const auto& arg : x_args)
         args.push_back(apply(*arg));
     regex_ = ast_mgr_.makeSeqRegex(args);
-
 }
 
 void Golog2LDLf::visit(const GologProgramChoice& x) {
