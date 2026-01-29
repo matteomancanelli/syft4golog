@@ -214,12 +214,14 @@ class Domain {
         std::map<int, std::string> id_to_reaction_name_;
         std::unordered_map<std::string, std::string> action_name_to_props_;
         std::unordered_map<std::string, std::string> reaction_name_to_props_;
-        // TODO. Add: 
         std::unordered_map<std::string, CUDD::BDD> action_name_to_bdd_;
         std::unordered_map<std::string, CUDD::BDD> reaction_name_to_bdd_;
         std::unordered_map<std::string, CUDD::BDD> action_name_to_pre_bdd_;
         std::unordered_set<Invariant, InvariantHash> invariants_;
         CUDD::BDD invariants_bdd_;
+        
+        // map action names to a set of symbols to be used for conversion into LDLf
+        std::unordered_map<std::string, std::unordered_set<std::string>> action_name_to_symbols_;
 
     public:
         Domain(
@@ -287,6 +289,10 @@ class Domain {
         }
 
         std::vector<int> to_bits(int i, std::size_t size) const;
+
+        std::unordered_map<std::string, std::unordered_set<std::string>> get_action_name_to_symbols() const {
+            return action_name_to_symbols_;
+        }
 
     private:
         void parse_sas();

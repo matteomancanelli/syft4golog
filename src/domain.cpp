@@ -634,10 +634,12 @@ void Domain::parse_sas() {
             for (int i = 0; i < act_bin_id.size(); ++i) {
                 if (act_bin_id[i] == 1) {
                     act_bdd = act_bdd * var_mgr_->name_to_variable("a_"+std::to_string(i));
+                    action_name_to_symbols_[action_name].insert("a_"+std::to_string(i));
                     act_props = act_props + "a_" + std::to_string(i) + " && ";
                 }
                 else if (act_bin_id[i] == 0) {
                     act_bdd = act_bdd * !(var_mgr_->name_to_variable("a_"+std::to_string(i)));
+                    action_name_to_symbols_[action_name].insert("!a_"+std::to_string(i));
                     act_props = act_props + "!a_" + std::to_string(i) + " && ";
                 }
             }
