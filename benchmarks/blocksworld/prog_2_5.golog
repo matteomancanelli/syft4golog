@@ -1,0 +1,1 @@
+((unstack_b1_b2|unstack_b2_b3|unstack_b3_b4|unstack_b4_b5) ; (nil | (put_down_b1|put_down_b2|put_down_b3|put_down_b4|put_down_b5)))* ; [on_b1_b0 && on_b2_b0 && on_b3_b0 && on_b4_b0 && on_b5_b0]?

@@ -97,9 +97,9 @@ int main(int argc, char ** argv) {
         bool exists = std::ifstream(outfile).good();
         std::ofstream outstream(outfile, std::ios::app);
         if (!exists)
-            outstream << "Parse Domain (s),Parse Golog(s),Domain2DFA (s),Golog2TS (s),Game Construction (s),Game Resolution (s),Total (s),Algorithm" << std::endl;
+            outstream << "Domain File,Init File,Program File,Parse Domain (s),Parse Golog(s),Domain2DFA (s),Golog2TS (s),Game Construction (s),Game Resolution (s),Total (s),Algorithm" << std::endl;
         const auto& runtimes = golog_synthesizer->running_times();
-        outstream << runtimes[0] << "," << runtimes[1] << "," << runtimes[2] << "," << runtimes[3] << "," << runtimes[4] << "," << runtimes[5] << "," << sumVec(runtimes); 
+        outstream << domain_file << "," << init_file << "," << golog_file << "," << runtimes[0] << "," << runtimes[1] << "," << runtimes[2] << "," << runtimes[3] << "," << runtimes[4] << "," << runtimes[5] << "," << sumVec(runtimes); 
         if (algorithm_id == 1) outstream << ",Compositional" << std::endl;
         else if (algorithm_id == 2) outstream << ",LDLf" << std::endl;
     }
