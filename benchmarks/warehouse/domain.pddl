@@ -1,6 +1,7 @@
 (define (domain warehouse-domain)
 	(:requirements :non-deterministic :typing)
 	(:types box shelf)
+	(:constants s0 - shelf)
 	(:predicates (robot-at ?l - shelf)(box-at ?b - box ?l - shelf)(broken ?b - box)(holding ?b - box)(emptyhand)(has-wrap ?b - box))
 	(:action move
 	:parameters (?l1 - shelf ?l2 - shelf)
