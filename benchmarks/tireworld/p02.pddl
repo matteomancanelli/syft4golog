@@ -1,0 +1,5 @@
+(define (problem triangle-tire-2)
+  (:domain triangle-tire)
+  (:objects l11 l12 l21 l22 - location)
+  (:init (at l11)(connected l11 l12)(connected l12 l11)(connected l11 l21)(connected l21 l11)(connected l11 l22)(connected l22 l11)(connected l12 l21)(connected l21 l12)(connected l12 l22)(connected l22 l12)(connected l21 l22)(connected l22 l21)(spare-in l11)(spare-in l12)(spare-in l21)(spare-in l22)(not-flattire))
+  (:goal (and)))

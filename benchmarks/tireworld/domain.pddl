@@ -1,0 +1,16 @@
+(define (domain triangle-tire)
+  (:requirements :typing :strips :non-deterministic)
+  (:types location)
+  (:predicates (at ?loc - location)
+	       (spare-in ?loc - location)
+	       (connected ?from - location ?to - location)
+	       (not-flattire))
+  (:action move
+    :parameters (?from - location ?to - location)
+    :precondition (and (at ?from) (connected ?from ?to) (not-flattire))
+    :effect (and (at ?to) (not (at ?from))
+		 (oneof (and) (not (not-flattire)))))
+  (:action changetire
+    :parameters (?loc - location)
+    :precondition (and (spare-in ?loc) (at ?loc))
+    :effect (and (not (spare-in ?loc)) (not-flattire))))
