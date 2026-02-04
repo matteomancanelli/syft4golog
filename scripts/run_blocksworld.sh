@@ -12,7 +12,7 @@ TIMEOUT_SECS=600
 
 cd "$REPO_ROOT/build/bin"
 
-for num_blocks in $(seq 11 20); do
+for num_blocks in $(seq 3 20); do
   PROBLEM="$REPO_ROOT/benchmarks/blocksworld/p${num_blocks}.pddl"
 
   for expertise in 1 2 3; do
