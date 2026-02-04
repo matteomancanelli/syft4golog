@@ -80,11 +80,11 @@ int main(int argc, char ** argv) {
     else if (algorithm_id == 2)
         golog_synthesizer = std::make_shared<LDLfGologSynthesizer>(domain_file, init_file, golog_file);
 
+    auto result = golog_synthesizer->run();
+
     if (dump_ts_flag) golog_synthesizer->dump_ts();
     if (dump_domain_dfa_flag) golog_synthesizer->dump_domain();
     if (print_domain_flag) golog_synthesizer->print_domain();
-
-    auto result = golog_synthesizer->run();
 
     if (result->realizability) {
         std::cout << "[syft4golog] Synthesis is REALIZABLE [" << sumVec(golog_synthesizer->running_times()) << " s]" << std::endl;
