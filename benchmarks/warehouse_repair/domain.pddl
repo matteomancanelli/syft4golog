@@ -1,0 +1,31 @@
+(define (domain warehouse-domain)
+	(:requirements :non-deterministic :typing)
+	(:types box shelf)
+	(:constants s0 - shelf)
+	(:predicates (robot-at ?l - shelf)(box-at ?b - box ?l - shelf)(broken ?b - box)(holding ?b - box)(emptyhand)(has-wrap ?b - box))
+	(:action move
+	:parameters (?l1 - shelf ?l2 - shelf)
+	:precondition (and (robot-at ?l1))
+	:effect (and (not (robot-at ?l1)) (robot-at ?l2))
+	)
+	(:action take
+	:parameters (?b - box ?l - shelf)
+	:precondition (and (robot-at ?l)(box-at ?b ?l)(emptyhand))
+	:effect (and (holding ?b)(not (emptyhand))(not (box-at ?b ?l)))
+	)
+	(:action repair-and-wrap
+	:parameters (?b - box)
+	:precondition (and (broken ?b))
+	:effect (and (holding ?b) (not (emptyhand)) (not (broken ?b)) (has-wrap ?b))
+	)
+	(:action drop
+	:parameters (?b - box ?l - shelf)
+	:precondition (and (robot-at ?l) (holding ?b) (not (has-wrap ?b)))
+	:effect (oneof
+		(and (box-at ?b ?l) (emptyhand) (not (holding ?b)))
+		(and (broken ?b) (emptyhand) (not (holding ?b)))))
+	(:action drop-wrap
+	:parameters (?b - box ?l - shelf)
+	:precondition (and (robot-at ?l) (holding ?b) (has-wrap ?b))
+	:effect (and (box-at ?b ?l) (emptyhand) (not (holding ?b))))
+)

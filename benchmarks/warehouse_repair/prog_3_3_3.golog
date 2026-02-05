@@ -1,0 +1,1 @@
+((move_s0_s1 ; take_b1_s1 ; move_s1_s0 ; drop_b1_s0 ; (nil | (repair_and_wrap_b1 ; drop_wrap_b1_s0))) ; (move_s0_s2 ; take_b2_s2 ; move_s2_s0 ; drop_b2_s0 ; (nil | (repair_and_wrap_b2 ; drop_wrap_b2_s0))) ; (move_s0_s3 ; take_b3_s3 ; move_s3_s0 ; drop_b3_s0 ; (nil | (repair_and_wrap_b3 ; drop_wrap_b3_s0)))) ; [box_at_b1_s0 && box_at_b2_s0 && box_at_b3_s0]?

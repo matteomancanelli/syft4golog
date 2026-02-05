@@ -1,5 +1,5 @@
 def create_instance(num_shelves, num_boxes):
-    prob_str = f"(define (problem warehouse_{num_shelves}_{num_boxes})\n"
+    prob_str = f"(define (problem warehouse_{num_shelves})\n"
     prob_str += "(:domain warehouse-domain)\n"
     prob_str += f"(:objects\n"
     prob_str += "\t" + " ".join([f"b{i}" for i in range(1, num_boxes + 1)]) + " - box\n"
@@ -19,7 +19,7 @@ def create_instance(num_shelves, num_boxes):
 
 def gen_problem_bw(num_shelves, num_boxes):
     problem_str = create_instance(num_shelves, num_boxes)
-    with open(f"./benchmarks/warehouse/p{num_shelves}_{num_boxes}.pddl", "w") as f:
+    with open(f"./benchmarks/warehouse/p{num_shelves}.pddl", "w") as f:
         f.write(problem_str)
 
 def write_program_exp1(num_shelves, num_blocks):
@@ -54,12 +54,12 @@ def gen_program_bw(num_shelves, num_blocks, expertise):
     else:
         raise ValueError("Expertise level must be 1, 2, or 3.")
     
-    with open(f"./benchmarks/warehouse/prog_{expertise}_{num_shelves}_{num_blocks}.golog", "w") as f:
+    with open(f"./benchmarks/warehouse/prog_{expertise}_{num_shelves}.golog", "w") as f:
         f.write(program_str)
 
 
 if __name__ == "__main__":
     for expertise in [1, 2, 3]:
-        for num_shelves in range(2, 11):
+        for num_shelves in range(2, 51):
             gen_problem_bw(num_shelves, num_shelves)
             gen_program_bw(num_shelves, num_shelves, expertise)

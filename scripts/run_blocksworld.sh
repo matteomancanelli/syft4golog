@@ -6,13 +6,13 @@ REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 BIN="$REPO_ROOT/build/bin/syft4golog"
 
 DOMAIN="$REPO_ROOT/benchmarks/blocksworld/domain.pddl"
-RESULTS="$REPO_ROOT/results2.csv"
+RESULTS="$REPO_ROOT/results/results_blocksworld.csv"
 
 TIMEOUT_SECS=600
 
 cd "$REPO_ROOT/build/bin"
 
-for num_blocks in $(seq 3 20); do
+for num_blocks in $(seq 3 8); do
   PROBLEM="$REPO_ROOT/benchmarks/blocksworld/p${num_blocks}.pddl"
 
   for expertise in 1 2 3; do

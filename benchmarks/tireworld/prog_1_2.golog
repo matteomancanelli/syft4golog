@@ -1,0 +1,1 @@
+((move_l22_l11 | move_l22_l21 | move_l11_l12 | move_l11_l21 | move_l21_l11 | move_l12_l22 | move_l11_l22 | move_l12_l11 | move_l12_l21 | move_l21_l22 | move_l22_l12 | move_l21_l12) | (changetire_l11|changetire_l12|changetire_l21|changetire_l22))* ; [at_l22]?

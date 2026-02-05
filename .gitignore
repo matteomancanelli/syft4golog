@@ -13,3 +13,9 @@ src/stack.hh
 
 # gianmarco's private files
 notes.txt
+
+blocksworld_leave*/
+gen_benchmarks_blocksworld_leave.py
+results_blocksworld_leave.csv
+run_blocksworld_leave.sh
+more_warehouse.sh

@@ -13,10 +13,10 @@ TIMEOUT_SECS=600
 cd "$REPO_ROOT/build/bin"
 
 for num_shelves in $(seq 2 10); do
-  PROBLEM="$REPO_ROOT/benchmarks/warehouse/p${num_shelves}_${num_shelves}.pddl"
+  PROBLEM="$REPO_ROOT/benchmarks/warehouse/p${num_shelves}.pddl"
 
   for expertise in 1 2 3; do
-    GOLOG="$REPO_ROOT/benchmarks/warehouse/prog_${expertise}_${num_shelves}_${num_shelves}.golog"
+    GOLOG="$REPO_ROOT/benchmarks/warehouse/prog_${expertise}_${num_shelves}.golog"
 
     for alg in 1 2; do
       echo "=== num_shelves=$num_shelves expertise=$expertise alg=$alg ==="

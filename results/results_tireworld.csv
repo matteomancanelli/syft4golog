@@ -1,0 +1,18 @@
+Domain File,Init File,Program File,Parse Domain (s),Parse Golog(s),Domain2DFA (s),Golog2TS (s),Game Construction (s),Game Resolution (s),Total (s),Algorithm
+/home/matteo/syft4golog/benchmarks/tireworld/domain.pddl,/home/matteo/syft4golog/benchmarks/tireworld/p2.pddl,/home/matteo/syft4golog/benchmarks/tireworld/prog_1_2.golog,0.082,0,0,0.034,0,0,0.116,Compositional
+/home/matteo/syft4golog/benchmarks/tireworld/domain.pddl,/home/matteo/syft4golog/benchmarks/tireworld/p2.pddl,/home/matteo/syft4golog/benchmarks/tireworld/prog_1_2.golog,0.074,0,0,0.006,0,0,0.08,LDLf
+/home/matteo/syft4golog/benchmarks/tireworld/domain.pddl,/home/matteo/syft4golog/benchmarks/tireworld/p2.pddl,/home/matteo/syft4golog/benchmarks/tireworld/prog_2_2.golog,0.067,0,0,0.248,0,0,0.315,Compositional
+/home/matteo/syft4golog/benchmarks/tireworld/domain.pddl,/home/matteo/syft4golog/benchmarks/tireworld/p2.pddl,/home/matteo/syft4golog/benchmarks/tireworld/prog_2_2.golog,0.063,0,0,0.065,0,0.002,0.13,LDLf
+/home/matteo/syft4golog/benchmarks/tireworld/domain.pddl,/home/matteo/syft4golog/benchmarks/tireworld/p2.pddl,/home/matteo/syft4golog/benchmarks/tireworld/prog_3_2.golog,0.066,0,0,0,0,0,0.066,Compositional
+/home/matteo/syft4golog/benchmarks/tireworld/domain.pddl,/home/matteo/syft4golog/benchmarks/tireworld/p2.pddl,/home/matteo/syft4golog/benchmarks/tireworld/prog_3_2.golog,0.063,0,0,0.001,0,0,0.064,LDLf
+/home/matteo/syft4golog/benchmarks/tireworld/domain.pddl,/home/matteo/syft4golog/benchmarks/tireworld/p3.pddl,/home/matteo/syft4golog/benchmarks/tireworld/prog_1_3.golog,0.067,0,0.007,1.392,0,0.019,1.485,Compositional
+/home/matteo/syft4golog/benchmarks/tireworld/domain.pddl,/home/matteo/syft4golog/benchmarks/tireworld/p3.pddl,/home/matteo/syft4golog/benchmarks/tireworld/prog_1_3.golog,0.072,0,0.007,0.021,0,0.036,0.136,LDLf
+/home/matteo/syft4golog/benchmarks/tireworld/domain.pddl,/home/matteo/syft4golog/benchmarks/tireworld/p3.pddl,/home/matteo/syft4golog/benchmarks/tireworld/prog_2_3.golog,0.069,0,0.007,22.821,0,0.009,22.906,Compositional
+/home/matteo/syft4golog/benchmarks/tireworld/domain.pddl,/home/matteo/syft4golog/benchmarks/tireworld/p3.pddl,/home/matteo/syft4golog/benchmarks/tireworld/prog_2_3.golog,0.077,0.001,0.007,2.625,0,0.022,2.732,LDLf
+/home/matteo/syft4golog/benchmarks/tireworld/domain.pddl,/home/matteo/syft4golog/benchmarks/tireworld/p3.pddl,/home/matteo/syft4golog/benchmarks/tireworld/prog_3_3.golog,0.072,0,0.008,0.001,0,0.003,0.084,Compositional
+/home/matteo/syft4golog/benchmarks/tireworld/domain.pddl,/home/matteo/syft4golog/benchmarks/tireworld/p3.pddl,/home/matteo/syft4golog/benchmarks/tireworld/prog_3_3.golog,0.071,0,0.007,0.002,0,0.008,0.088,LDLf
+/home/matteo/syft4golog/benchmarks/tireworld/domain.pddl,/home/matteo/syft4golog/benchmarks/tireworld/p4.pddl,/home/matteo/syft4golog/benchmarks/tireworld/prog_1_4.golog,0.085,0,0.015,19.335,0,10.933,30.368,Compositional
+/home/matteo/syft4golog/benchmarks/tireworld/domain.pddl,/home/matteo/syft4golog/benchmarks/tireworld/p4.pddl,/home/matteo/syft4golog/benchmarks/tireworld/prog_1_4.golog,0.075,0,0.017,0.074,0,13.491,13.657,LDLf
+/home/matteo/syft4golog/benchmarks/tireworld/domain.pddl,/home/matteo/syft4golog/benchmarks/tireworld/p4.pddl,/home/matteo/syft4golog/benchmarks/tireworld/prog_2_4.golog,0.088,0.002,0.016,33.142,0,1.058,34.306,LDLf
+/home/matteo/syft4golog/benchmarks/tireworld/domain.pddl,/home/matteo/syft4golog/benchmarks/tireworld/p4.pddl,/home/matteo/syft4golog/benchmarks/tireworld/prog_3_4.golog,0.083,0,0.016,0.002,0,0.006,0.107,Compositional
+/home/matteo/syft4golog/benchmarks/tireworld/domain.pddl,/home/matteo/syft4golog/benchmarks/tireworld/p4.pddl,/home/matteo/syft4golog/benchmarks/tireworld/prog_3_4.golog,0.078,0,0.016,0.003,0,0.085,0.182,LDLf
