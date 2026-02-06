@@ -1,1 +1,1 @@
-((unstack_b1_b2 ; (nil | unstack_succ_b1_b2) ; ([holding_b1]?) ; put_down_b1) ; (unstack_b2_b3 ; (nil | unstack_succ_b2_b3) ; ([holding_b2]?) ; put_down_b2)) ; [on_b1_b0 && on_b2_b0 && on_b3_b0]?
+(((nil | unstack_b1_b2) ; (nil | unstack_succ_b1_b2) ; (nil | put_down_b1)) ; ((nil | unstack_b2_b3) ; (nil | unstack_succ_b2_b3) ; (nil | put_down_b2))) ; [on_b1_b0 && on_b2_b0 && on_b3_b0]?

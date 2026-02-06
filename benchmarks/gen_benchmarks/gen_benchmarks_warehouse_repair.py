@@ -1,5 +1,5 @@
 def create_instance(num_shelves):
-    prob_str = f"(define (problem warehouse_{num_shelves}))\n"
+    prob_str = f"(define (problem warehouse_{num_shelves})\n"
     prob_str += "(:domain warehouse-domain)\n"
     prob_str += f"(:objects\n"
     prob_str += "\t" + " ".join([f"b{i}" for i in range(1, num_shelves + 1)]) + " - box\n"
@@ -60,6 +60,6 @@ def gen_program_bw(num_shelves, expertise):
 
 if __name__ == "__main__":
     for expertise in [1, 2, 3]:
-        for num_shelves in range(2, 11):
+        for num_shelves in range(2, 30):
             gen_problem_bw(num_shelves,)
             gen_program_bw(num_shelves, expertise)

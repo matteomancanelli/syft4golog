@@ -31,7 +31,7 @@ def write_program_exp1(num_blocks):
 def write_program_exp2(num_blocks):
     unstack_some_block = "(" + "|".join([f"unstack_b{i}_b{i+1}" for i in range(1, num_blocks)]) + ")"
     put_down_some_block = "(" + "|".join([f"put_down_b{i}" for i in range(1, num_blocks + 1)]) + ")"
-    loop_body = "(" + unstack_some_block + " ; (nil | " + put_down_some_block + "))*"
+    loop_body = "((nil | " + unstack_some_block + ") ; (nil | " + put_down_some_block + "))*"
     final_condition = "[" + " && ".join([f"on_b{i}_b0" for i in range(1, num_blocks + 1)]) + "]?"
     return loop_body + " ; " + final_condition
 
