@@ -12,13 +12,18 @@ TIMEOUT_SECS=600
 
 cd "$REPO_ROOT/build/bin"
 
-for num_shelves in $(seq 2 10); do
+for num_shelves in $(seq 11 13); do
   PROBLEM="$REPO_ROOT/benchmarks/warehouse_repair/p${num_shelves}.pddl"
 
-  for expertise in 1 2 3; do
+  for expertise in 2 3; do
     GOLOG="$REPO_ROOT/benchmarks/warehouse_repair/prog_${expertise}_${num_shelves}.golog"
 
     for alg in 1 2; do
+      if [[ "$expertise" -eq 2 && "$alg" -eq 2 ]]; then
+        echo "Skipping alg=2 for expertise=2..."
+        continue
+      fi
+      
       echo "=== num_shelves=$num_shelves expertise=$expertise alg=$alg ==="
 
       timeout "$TIMEOUT_SECS" "$BIN" \

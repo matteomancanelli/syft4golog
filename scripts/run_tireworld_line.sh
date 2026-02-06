@@ -5,21 +5,21 @@ set -euo pipefail
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 BIN="$REPO_ROOT/build/bin/syft4golog"
 
-DOMAIN="$REPO_ROOT/benchmarks/tireworld/domain.pddl"
-RESULTS="$REPO_ROOT/results/results_tireworld.csv"
+DOMAIN="$REPO_ROOT/benchmarks/tireworld_line/domain.pddl"
+RESULTS="$REPO_ROOT/results/results_tireworld_line.csv"
 
 TIMEOUT_SECS=600
 
 cd "$REPO_ROOT/build/bin"
 
-for grid_dim in $(seq 5 10); do
-  PROBLEM="$REPO_ROOT/benchmarks/tireworld/p${grid_dim}.pddl"
+for line_dim in $(seq 3 12); do
+  PROBLEM="$REPO_ROOT/benchmarks/tireworld_line/p${line_dim}.pddl"
 
   for expertise in 1 2 3; do
-    GOLOG="$REPO_ROOT/benchmarks/tireworld/prog_${expertise}_${grid_dim}.golog"
+    GOLOG="$REPO_ROOT/benchmarks/tireworld_line/prog_${expertise}_${line_dim}.golog"
 
     for alg in 1 2; do
-      echo "=== grid_dim=$grid_dim expertise=$expertise alg=$alg ==="
+      echo "=== line_dim=$line_dim expertise=$expertise alg=$alg ==="
 
       timeout "$TIMEOUT_SECS" "$BIN" \
         -d "$DOMAIN" \
@@ -27,7 +27,7 @@ for grid_dim in $(seq 5 10); do
         -g "$GOLOG" \
         -a "$alg" \
         -r "$RESULTS" \
-        || echo "Run failed (grid_dim=$grid_dim, exp=$expertise, alg=$alg) with exit code $?"
+        || echo "Run failed (line_dim=$line_dim, exp=$expertise, alg=$alg) with exit code $?"
     done
   done
 done

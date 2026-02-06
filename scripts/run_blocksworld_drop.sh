@@ -6,7 +6,7 @@ REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 BIN="$REPO_ROOT/build/bin/syft4golog"
 
 DOMAIN="$REPO_ROOT/benchmarks/blocksworld_drop/domain.pddl"
-RESULTS="$REPO_ROOT/results/results_blocksworld_drop_holding.csv"
+RESULTS="$REPO_ROOT/results/results_blocksworld_drop.csv"
 
 TIMEOUT_SECS=600
 
