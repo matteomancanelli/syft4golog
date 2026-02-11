@@ -1,0 +1,1 @@
+((move_r0_r1 | move_r1_r0 | ask_d1 | ask_d2 | ask_d3 | ask_d4 | ask_d5 | load_r1_d1 | load_r1_d2 | load_r1_d3 | load_r1_d4 | load_r1_d5 | unload_d1 | unload_d2 | unload_d3 | unload_d4 | unload_d5) | nil)* ; [clean_d1 && clean_d2 && clean_d3 && clean_d4 && clean_d5]?

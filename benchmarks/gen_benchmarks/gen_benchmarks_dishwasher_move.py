@@ -170,7 +170,7 @@ def gen_instance(out_dir: str, num_rooms: int, num_dishes: int):
             f.write(func(num_rooms, num_dishes))
 
 if __name__ == "__main__":
-    base = "./benchmarks/dishwasher"
+    base = "./benchmarks/dishwasher_move"
     # Starting small for validation
     for r in range(1, 6):
         for d in range(1, 6):
