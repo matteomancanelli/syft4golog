@@ -25,7 +25,8 @@ class BaseGologSynthesizer{
         std::shared_ptr<Syft::SymbolicStateDfa> domain_sdfa_;
         std::shared_ptr<Syft::SymbolicStateDfa> game_arena_;
         std::shared_ptr<Syft::SynthesisResult> result_;
-        std::vector<double> running_times_;        
+        std::vector<double> running_times_;
+        std::vector<double> running_data_;        
 
         Syft::SymbolicStateDfa compose(
             const Syft::SymbolicStateDfa& domain_dfa,
@@ -40,6 +41,7 @@ class BaseGologSynthesizer{
         );
 
         std::vector<double> running_times() const {return running_times_;}
+        std::vector<double> running_data() const {return running_data_;}
 
         virtual std::shared_ptr<Syft::SynthesisResult> run() = 0;
         void interactive() const; 

@@ -28,6 +28,8 @@ std::shared_ptr<Syft::SynthesisResult> LDLfGologSynthesizer::run() {
     pdfa_ = std::make_shared<Syft::ExplicitStateDfaAdd>(std::move(Syft::ExplicitStateDfaAdd::from_dfa_mona(var_mgr_, pdfa_mona)));
     auto golog_sdfa = Syft::SymbolicStateDfa::from_explicit(*pdfa_);
 
+    running_data_.push_back(pdfa_->state_count());
+
     double t_golog2dfa = golog2dfa.stop().count() / 1000.0;
     running_times_.push_back(t_golog2dfa);
 

@@ -21,6 +21,8 @@ std::shared_ptr<Syft::SynthesisResult> CompositionalGologSynthesizer::run() {
     std::cout << "[syft4golog] Transforming Golog to symbolic program graph..." << std::flush;
     pg_ = std::make_shared<ExplicitStateProgramGraph>(ExplicitStateProgramGraph::from_golog_program(golog_program_, var_mgr_, domain_->get_action_name_to_bdd(), domain_->get_action_name_to_pre_bdd()));
 
+    running_data_.push_back(pg_->state_count());
+
     auto golog_dfa = pg_->to_symbolic();
     // debug
     // golog_program_graph.dump_dot("pg.dot");
