@@ -6,19 +6,19 @@ REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 BIN="$REPO_ROOT/build/bin/syft4golog"
 
 DOMAIN="$REPO_ROOT/benchmarks/warehouse/domain.pddl"
-RESULTS="$REPO_ROOT/results/results_warehouse.csv"
+RESULTS="$REPO_ROOT/results/results_warehouse2.csv"
 
 TIMEOUT_SECS=600
 
 cd "$REPO_ROOT/build/bin"
 
-for num_shelves in $(seq 2 10); do
+for num_shelves in $(seq 22 22); do
   PROBLEM="$REPO_ROOT/benchmarks/warehouse/p${num_shelves}.pddl"
 
-  for expertise in 1 2 3; do
+  for expertise in 3; do
     GOLOG="$REPO_ROOT/benchmarks/warehouse/prog_${expertise}_${num_shelves}.golog"
 
-    for alg in 1 2; do
+    for alg in 1; do
       echo "=== num_shelves=$num_shelves expertise=$expertise alg=$alg ==="
 
       timeout "$TIMEOUT_SECS" "$BIN" \

@@ -21,3 +21,7 @@ gen_benchmarks_blocksworld_leave.py
 results_blocksworld_leave.csv
 run_blocksworld_leave.sh
 more_warehouse.sh
+plot.py
+plot2.py
+plots/
+plots2*/

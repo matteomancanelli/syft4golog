@@ -1,0 +1,1 @@
+(((nil | move_l1_l2_) ; (nil | changetire_l2)) | ((nil | move_l2_l1_) ; (nil | changetire_l1)))* ; [at_l2]?

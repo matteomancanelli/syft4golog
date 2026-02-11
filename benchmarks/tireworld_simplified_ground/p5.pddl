@@ -1,0 +1,13 @@
+(define (problem triangle_tire_5)
+  (:domain triangle-tire-n5)
+  (:init
+    (not-flattire)
+    (at l1)
+    (spare-in l1)
+    (spare-in l2)
+    (spare-in l3)
+    (spare-in l4)
+    (spare-in l5)
+  )
+  (:goal (and (at l5)))
+)

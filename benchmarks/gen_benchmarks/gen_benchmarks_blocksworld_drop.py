@@ -30,22 +30,6 @@ def write_program_exp1(num_blocks):
     final_condition = "[" + " && ".join([f"on_b{i}_b0" for i in range(1, num_blocks + 1)]) + "]?"
     return loop_body + " ; " + final_condition
 
-'''
-def write_program_exp2(num_blocks):
-    unstack_some_block = "(" + "|".join([f"unstack_b{i}_b{i+1}" for i in range(1, num_blocks)]) + ")"
-    unstack_succ_some_block = "(" + "|".join([f"unstack_succ_b{i}_b{i+1}" for i in range(1, num_blocks)]) + ")"
-    testing_holding = "([" + "||".join([f"holding_b{i}" for i in range(1, num_blocks + 1)]) + "]?)"
-    put_down_some_block = "(" + "|".join([f"put_down_b{i}" for i in range(1, num_blocks + 1)]) + ")"
-    loop_body = "(" + unstack_some_block + " ; (nil | " + unstack_succ_some_block + ") ; " + testing_holding + " ; " + put_down_some_block + ")*"
-    final_condition = "[" + " && ".join([f"on_b{i}_b0" for i in range(1, num_blocks + 1)]) + "]?"
-    return loop_body + " ; " + final_condition
-
-def write_program_exp3(num_blocks):
-    body = "(" + " ; ".join([f"(unstack_b{i}_b{i+1} ; (nil | unstack_succ_b{i}_b{i+1}) ; ([holding_b{i}]?) ; put_down_b{i})" for i in range(1, num_blocks)]) + ")"
-    final_condition = "[" + " && ".join([f"on_b{i}_b0" for i in range(1, num_blocks + 1)]) + "]?"
-    return body + " ; " + final_condition
-'''
-
 def write_program_exp2(num_blocks):
     unstack_some_block = "(" + "|".join([f"unstack_b{i}_b{i+1}" for i in range(1, num_blocks)]) + ")"
     unstack_succ_some_block = "(" + "|".join([f"unstack_succ_b{i}_b{i+1}" for i in range(1, num_blocks)]) + ")"

@@ -1,0 +1,6 @@
+(define (problem p_5_1)
+  (:domain dishwasher)
+  (:objects d1 - dish r1 r2 r3 r4 r5 - room)
+  (:init (can-arrive d1))
+  (:goal (and (clean d1)))
+)

@@ -1,0 +1,1 @@
+(((nil | move_l1) ; (nil | changetire_l1)) | ((nil | move_l2) ; (nil | changetire_l2)) | ((nil | move_l3) ; (nil | changetire_l3)) | ((nil | move_l4) ; (nil | changetire_l4)))* ; [at_l4]?

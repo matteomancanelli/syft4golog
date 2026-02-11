@@ -1,0 +1,12 @@
+(define (problem tire_carry_26)
+  (:domain tire-carry)
+  (:init
+    (not (bit0))
+    (not (bit1))
+    (not (bit2))
+    (not (bit3))
+    (not (bit4))
+    (not-flattire)
+  )
+  (:goal (and (bit0) (not (bit1)) (not (bit2)) (bit3) (bit4)))
+)

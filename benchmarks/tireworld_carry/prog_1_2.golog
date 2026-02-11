@@ -1,0 +1,1 @@
+((move_fwd_p0_ | move_bwd_p1_) | pickup_spare_ | changetire_)* ; [bit0]?

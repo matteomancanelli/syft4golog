@@ -1,0 +1,1 @@
+((prepare_coffee_l0 ; move_l0_l1 ; put_coffee_l1 ; (nil | put_coffee_fair_l1) ; move_l1_l0) ; (prepare_coffee_l0 ; move_l0_l1 ; move_l1_l2 ; put_coffee_l2 ; (nil | put_coffee_fair_l2) ; move_l2_l1 ; move_l1_l0)) ; [coffee_at_l1 && coffee_at_l2]?

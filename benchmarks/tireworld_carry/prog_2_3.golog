@@ -1,0 +1,1 @@
+((nil | pickup_spare_) ; (nil | (move_fwd_p0_ | move_fwd_p1_ | move_bwd_p1_ | move_bwd_p2_)) ; (nil | changetire_))* ; [!bit0 && bit1]?

@@ -1,0 +1,1 @@
+((move_l1_l2_ | move_l2_l1_ | move_l2_l3_ | move_l3_l2_ | move_l3_l4_ | move_l4_l3_ | move_l4_l5_ | move_l5_l4_ | changetire_l1 | changetire_l2 | changetire_l3 | changetire_l4 | changetire_l5))* ; [at_l5]?
