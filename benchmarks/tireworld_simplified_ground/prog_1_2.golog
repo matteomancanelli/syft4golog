@@ -1,1 +1,0 @@
-((move_l1_l2_ | move_l2_l1_ | changetire_l1 | changetire_l2))* ; [at_l2]?

@@ -1,0 +1,1 @@
+((move_r0_r1 | move_r1_r0 | move_r0_r2 | move_r2_r0) | (load_d1_r1 | load_d2_r2) | (try_unload_d1_r0 | try_unload_d2_r0) | (wash_d1 | wash_d2) | (unload_clean_d1_r0 | unload_clean_d2_r0))* ; [dish_at_d1_r0 && dish_at_d2_r0]?
