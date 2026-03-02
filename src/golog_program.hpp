@@ -243,6 +243,7 @@ class TFCVisitor : public GologProgramNodeVisitor {
         std::unordered_map<std::string, CUDD::BDD> action_name_to_pre_bdd_;
         TFCResult result_;
         golog_set visited_programs_; // store programs that have been visited so far
+        golog_set added_programs_; // programs that have been added to the queue
         golog_queue programs_queue_; // programs that need to be visited
 
         void visit(const GologProgramNil&) override;

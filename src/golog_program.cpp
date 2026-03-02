@@ -353,8 +353,11 @@ void TFCVisitor::visit(const GologProgramSequence& x) {
                         transition_ptr t_ptr = std::make_shared<ProgramTransition>(guard, succ_program);
                         // std::cout << "Generated transition. T(" << to_string(pa->program_) << ", " << p.first->action_ << ") = (" << guard << ", " << to_string(succ_program) << ")" << std::endl;   
                         result_.transitions_[pa].insert(t_ptr);
-                        if (visited_programs_.find(succ_program) == visited_programs_.end())
+                        // if successor program has not been added, then add it to the queue
+                        if ((visited_programs_.find(succ_program) == visited_programs_.end()) && (added_programs_.find(succ_program) == visited_programs_.end())) {
+                            added_programs_.insert(succ_program);
                             programs_queue_.push(succ_program);
+                        }
                     }
                 }
             }
@@ -445,8 +448,10 @@ void TFCVisitor::visit(const GologProgramIteration& x) {
                     //           << guard << ", " << to_string(succ_program) << ")" << std::endl;
                     result_.transitions_[pa].insert(t_ptr);
                     // if new successor program has not been visited, push it into the queue
-                    if (visited_programs_.find(succ_program) == visited_programs_.end())
+                    if ((visited_programs_.find(succ_program) == visited_programs_.end()) && (added_programs_.find(succ_program) == visited_programs_.end())) {
+                        added_programs_.insert(succ_program);
                         programs_queue_.push(succ_program);
+                    }
                 }
             }
         }
@@ -459,9 +464,11 @@ void TFCVisitor::visit(const GologProgramIteration& x) {
 
 TFCResult TFCVisitor::apply(const GologProgramNode& x) {
     golog_ptr nil_ptr = std::make_shared<GologProgramNil>();
+    added_programs_.insert(nil_ptr);
     programs_queue_.push(nil_ptr);
 
     golog_ptr x_ptr = x.shared_from_this();
+    added_programs_.insert(x_ptr);
     programs_queue_.push(x_ptr);
 
     while (!programs_queue_.empty()) {
