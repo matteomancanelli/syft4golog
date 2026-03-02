@@ -8,6 +8,11 @@ class CompositionalGologSynthesizer : public BaseGologSynthesizer {
     protected:
         std::shared_ptr<ExplicitStateProgramGraph> pg_;
 
+        Syft::SymbolicStateDfa compose(
+            const Syft::SymbolicStateDfa& domain_dfa,
+            const Syft::SymbolicStateDfa& golog_program_dfa
+        ) const;
+
     public:
         using BaseGologSynthesizer::BaseGologSynthesizer; // inherits construcotr
 

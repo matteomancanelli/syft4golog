@@ -3,11 +3,17 @@
 
 #include"base_golog_synthesizer.h"
 #include"lydia/logic/ldlf/base.hpp"
+#include"lydia/utils/print.hpp"
 
 class LDLfGologSynthesizer : public BaseGologSynthesizer {
 
     protected:
         std::shared_ptr<Syft::ExplicitStateDfaAdd> pdfa_;
+
+        Syft::SymbolicStateDfa compose(
+            const Syft::SymbolicStateDfa& domain_dfa,
+            const Syft::SymbolicStateDfa& golog_program_dfa
+        ) const;
 
     public:
         using BaseGologSynthesizer::BaseGologSynthesizer;

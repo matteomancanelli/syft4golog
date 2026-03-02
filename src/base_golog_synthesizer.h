@@ -28,10 +28,10 @@ class BaseGologSynthesizer{
         std::vector<double> running_times_;
         std::vector<double> running_data_;        
 
-        Syft::SymbolicStateDfa compose(
+        virtual Syft::SymbolicStateDfa compose(
             const Syft::SymbolicStateDfa& domain_dfa,
             const Syft::SymbolicStateDfa& golog_program_dfa
-        ) const;
+        ) const = 0;
 
     public:
         BaseGologSynthesizer(
