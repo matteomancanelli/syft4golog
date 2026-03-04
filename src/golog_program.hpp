@@ -43,6 +43,7 @@ class GologProgramNode : public std::enable_shared_from_this<GologProgramNode> {
         virtual std::size_t hash() const = 0;
         virtual bool equals(const golog_ptr& x) const = 0;
         virtual std::size_t get_type_id() const = 0;
+        virtual std::size_t size() const = 0;
 };
 
 struct GologProgramHash {
@@ -65,7 +66,8 @@ class GologProgramNil: public GologProgramNode {
         void accept(GologProgramNodeVisitor& x) const override;
         std::size_t hash() const override;
         bool equals(const golog_ptr& x) const override;
-        std::size_t get_type_id() const; 
+        std::size_t get_type_id() const;
+        std::size_t size() const override;
 };
 
 // undefined 
@@ -77,6 +79,7 @@ class GologProgramUnd : public GologProgramNode {
         std::size_t hash() const override;
         bool equals(const golog_ptr& x) const override; 
         std::size_t get_type_id() const;
+        std::size_t size() const override;
 };
 
 // action
@@ -89,6 +92,7 @@ class GologProgramAction : public GologProgramNode {
         std::size_t hash() const override;
         bool equals(const golog_ptr& x) const override; 
         std::size_t get_type_id() const override; 
+        std::size_t size() const override;
 };
 
 // test
@@ -101,6 +105,7 @@ class GologProgramTest : public  GologProgramNode {
         std::size_t hash() const override;
         bool equals(const golog_ptr& v) const override;
         std::size_t get_type_id() const;
+        std::size_t size() const override;
 };
 
 // sequence
@@ -113,6 +118,7 @@ class GologProgramSequence : public GologProgramNode {
         std::size_t hash() const override;
         bool equals(const golog_ptr& x) const override; 
         std::size_t get_type_id() const;
+        std::size_t size() const override;
 };
 
 // choice
@@ -125,6 +131,7 @@ class GologProgramChoice : public GologProgramNode {
         std::size_t hash() const override;
         bool equals(const golog_ptr& x) const override;
         std::size_t get_type_id() const;
+        std::size_t size() const override;
 };
 
 // iteration
@@ -137,6 +144,7 @@ class GologProgramIteration : public GologProgramNode {
         std::size_t hash() const override;
         bool equals(const golog_ptr& x) const override; 
         std::size_t get_type_id() const;
+        std::size_t size() const override;
 };
 
 // abstract class for visitors of Golog programs
@@ -201,7 +209,34 @@ struct ProgramTransition {
 typedef std::shared_ptr<const ProgramActionPair> program_action_ptr;
 typedef std::shared_ptr<const ProgramTransition> transition_ptr;
 typedef std::unordered_set<CUDD::BDD, BDDHash> bdd_set;
+
+struct GologProgramLessThan {
+    bool operator()(const golog_ptr& a, const golog_ptr& b) const {
+        return a->size() > b->size();
+    }
+};
+
+typedef std::priority_queue<golog_ptr, std::vector<golog_ptr>, GologProgramLessThan> golog_priority_queue;
 typedef std::queue<golog_ptr> golog_queue;
+
+class SyntacticClosure : public GologProgramNodeVisitor {
+
+    public:
+        golog_set result_;
+        golog_set visited_programs_;
+
+        void visit(const GologProgramNil&) override;
+        void visit(const GologProgramUnd&) override;
+        void visit(const GologProgramAction&) override;
+        void visit(const GologProgramTest&) override;
+        void visit(const GologProgramSequence&) override;
+        void visit(const GologProgramChoice&) override;
+        void visit(const GologProgramIteration&) override;
+
+        golog_set apply(const GologProgramNode& x);
+};
+
+golog_set syntactic_closure(const golog_ptr& x);
 
 struct ProgramActionPairHash {
     std::size_t operator()(const program_action_ptr& x) const { return x->hash();}

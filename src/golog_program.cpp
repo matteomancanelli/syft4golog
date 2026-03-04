@@ -11,6 +11,8 @@ bool GologProgramNil::equals(const golog_ptr& x) const {
 
 void GologProgramNil::accept(GologProgramNodeVisitor& v) const {v.visit(*this);}
 
+std::size_t GologProgramNil::size() const {return 0;}
+
 // undefined
 std::size_t GologProgramUnd::hash() const {return type_id_;}
 
@@ -21,6 +23,8 @@ bool GologProgramUnd::equals(const golog_ptr& x) const {
 }
 
 void GologProgramUnd::accept(GologProgramNodeVisitor& v) const {v.visit(*this);}
+
+std::size_t GologProgramUnd::size() const {return 0;}
 
 // action
 std::size_t GologProgramAction::get_type_id() const {return type_id_;}
@@ -35,6 +39,8 @@ bool GologProgramAction::equals(const golog_ptr& x) const {
 
 void GologProgramAction::accept(GologProgramNodeVisitor& v) const {v.visit(*this);}
 
+std::size_t GologProgramAction::size() const {return 1;}
+
 // test
 std::size_t GologProgramTest::get_type_id() const {return type_id_;}
 
@@ -47,6 +53,8 @@ bool GologProgramTest::equals(const golog_ptr& x) const {
 }
 
 void GologProgramTest::accept(GologProgramNodeVisitor& v) const {v.visit(*this);}
+
+std::size_t GologProgramTest::size() const {return 1;}
 
 // sequence
 std::size_t GologProgramSequence::hash() const {
@@ -75,6 +83,12 @@ bool GologProgramSequence::equals(const golog_ptr& x) const {
 
 void GologProgramSequence::accept(GologProgramNodeVisitor& v) const {v.visit(*this);}
 
+std::size_t GologProgramSequence::size() const {
+    std::size_t sz = 1;
+    for (const auto& arg : args_) sz += arg->size();
+    return sz;
+}
+
 // choice
 std::size_t GologProgramChoice::get_type_id() const {return type_id_;}
 
@@ -101,6 +115,12 @@ bool GologProgramChoice::equals(const golog_ptr& x) const {
 
 void GologProgramChoice::accept(GologProgramNodeVisitor& v) const {v.visit(*this);}
 
+std::size_t GologProgramChoice::size() const {
+    std::size_t sz = 1;
+    for (const auto& arg : args_) sz += arg->size();
+    return sz;
+}
+
 // iteration
 std::size_t GologProgramIteration::get_type_id() const {
     return type_id_;
@@ -116,6 +136,12 @@ bool GologProgramIteration::equals(const golog_ptr& x) const {
 }
 
 void GologProgramIteration::accept(GologProgramNodeVisitor& v) const {v.visit(*this);}
+
+std::size_t GologProgramIteration::size() const {
+    std::size_t sz = 1;
+    sz += arg_->size();
+    return sz;
+}
 
 // visitors
 // to string visitor
@@ -174,6 +200,97 @@ std::string GologProgramNodeToString::apply(const GologProgramNode& x) {
 
 std::string to_string(const golog_ptr& x) {
     GologProgramNodeToString v;
+    return v.apply(*x);
+}
+
+void SyntacticClosure::visit(const GologProgramNil& x) {
+    result_.insert(std::make_shared<GologProgramNil>());
+}
+
+void SyntacticClosure::visit(const GologProgramUnd& x) {
+    result_.insert(std::make_shared<GologProgramUnd>());
+}
+
+void SyntacticClosure::visit(const GologProgramAction& x) {
+    result_.insert(std::make_shared<GologProgramAction>(x.action_name_));
+    result_.insert(std::make_shared<GologProgramNil>());
+}
+
+void SyntacticClosure::visit(const GologProgramTest& x) {
+    result_.insert(std::make_shared<GologProgramTest>(x.arg_));
+    result_.insert(std::make_shared<GologProgramNil>());
+}
+
+void SyntacticClosure::visit(const GologProgramSequence& x) {
+    golog_ptr prg = std::make_shared<const GologProgramSequence>(x.args_);
+    result_.insert(prg);
+    visited_programs_.insert(prg);
+
+    for (int i = 0; i < x.args_.size() - 1; ++i) {
+        const auto& curr_prg = x.args_[i];
+        if (visited_programs_.find(curr_prg) == visited_programs_.end()) {
+            golog_set tmp = result_;
+            result_ = {};
+            visited_programs_.insert(curr_prg);
+            curr_prg->accept(*this);
+            golog_set tmp2 = result_;
+            // debug
+            // std::cout << "tmp2: " << std::endl;
+            // for (const auto& t : tmp2)
+            //     std::cout << to_string(t) << std::endl;
+            // std::cout << std::endl;
+            // 
+            result_ = tmp;
+            for (const auto& sub_prg : tmp2) {
+                golog_vec v = {sub_prg};
+                for (int j = i+1; j < x.args_.size(); ++j) 
+                    v.push_back(x.args_[j]);
+                golog_ptr new_prg = std::make_shared<const GologProgramSequence>(v); 
+                result_.insert(new_prg);
+            }
+        }
+    }
+    const auto& lst_prg = x.args_[x.args_.size() - 1];
+    if (visited_programs_.find(lst_prg) == visited_programs_.end()) {
+        visited_programs_.insert(lst_prg);
+        lst_prg->accept(*this);
+    } 
+}
+
+void SyntacticClosure::visit(const GologProgramChoice& x) {
+    golog_ptr prg = std::make_shared<const GologProgramChoice>(x.args_);
+    result_.insert(prg);
+    visited_programs_.insert(prg);
+    for (const auto& arg : x.args_) {
+        if (visited_programs_.find(arg) == visited_programs_.end()) {
+            visited_programs_.insert(arg);
+            arg->accept(*this);
+        }
+    }
+}
+
+void SyntacticClosure::visit(const GologProgramIteration& x) {
+    golog_ptr prg = std::make_shared<const GologProgramIteration>(x.arg_);
+    result_.insert(prg);
+    visited_programs_.insert(prg);
+    golog_vec v = {x.arg_, prg};
+    golog_ptr new_prg = std::make_shared<const GologProgramSequence>(v);
+    if (visited_programs_.find(new_prg) == visited_programs_.end()) {
+        visited_programs_.insert(new_prg);
+        new_prg->accept(*this);
+    }
+}
+
+golog_set SyntacticClosure::apply(const GologProgramNode& x) {
+    golog_ptr nil_ptr = std::make_shared<GologProgramNil>();
+    result_.insert(nil_ptr);
+    visited_programs_.insert(nil_ptr);
+    x.accept(*this);
+    return result_;
+}
+
+golog_set syntactic_closure(const golog_ptr& x) {
+    SyntacticClosure v;
     return v.apply(*x);
 }
 
