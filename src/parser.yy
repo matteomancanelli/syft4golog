@@ -62,7 +62,7 @@
 %token              NIL
 %token              UND
 %left               TEST
-%left               SEQUENCE
+%right              SEQUENCE
 %left               CHOICE
 %left               ITERATION
 
