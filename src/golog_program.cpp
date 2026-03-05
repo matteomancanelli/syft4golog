@@ -234,14 +234,9 @@ void SyntacticClosure::visit(const GologProgramSequence& x) {
             visited_programs_.insert(curr_prg);
             curr_prg->accept(*this);
             golog_set tmp2 = result_;
-            // debug
-            // std::cout << "tmp2: " << std::endl;
-            // for (const auto& t : tmp2)
-            //     std::cout << to_string(t) << std::endl;
-            // std::cout << std::endl;
-            // 
-            result_ = tmp;
+            result_ = std::move(tmp);
             for (const auto& sub_prg : tmp2) {
+                result_.insert(sub_prg); // TODO. Is this necessary or there is a better way?
                 golog_vec v = {sub_prg};
                 for (int j = i+1; j < x.args_.size(); ++j) 
                     v.push_back(x.args_[j]);
@@ -729,4 +724,223 @@ ldlf_ptr to_ldlf(
         // return <regex>end
         // return v.ast_mgr_.makeLdlfDiamond(regex, v.ast_mgr_.makeLdlfEnd());
 }
+
+void get_continuation_function(const std::shared_ptr<Syft::VarMgr>& var_mgr, const golog_ptr& program, TFCResult& result) {
+    CUDD::BDD continuation_function = var_mgr->cudd_mgr()->bddZero();
+
+    for (const auto& [pa, t] : result.transitions_) {
+        if (program -> equals(pa->program_)) {
+            for (const auto& tt : t) continuation_function += tt->guard_;
+        }
+    }
+
+    continuation_function += result.final_functions_[program];
+    result.continuation_functions_[program] = std::move(continuation_function);
+}
+
+void GologProgramNil::tfc(
+    const std::shared_ptr<Syft::VarMgr>& var_mgr, 
+    TFCResult& result,
+    const std::unordered_map<std::string, CUDD::BDD>& action_name_to_bdd,
+    const std::unordered_map<std::string, CUDD::BDD>& action_name_to_pre_bdd) const {
+    
+    golog_ptr x_ptr = std::make_shared<GologProgramNil>();
+    CUDD::BDD bdd_true = var_mgr->cudd_mgr()->bddOne();
+
+    // function T
+    // do nothing
+
+    // function F
+    result.final_functions_.emplace(x_ptr, bdd_true);
+
+    // function C
+    get_continuation_function(var_mgr, x_ptr, result);
+}
+
+void GologProgramUnd::tfc(
+    const std::shared_ptr<Syft::VarMgr>& var_mgr, 
+    TFCResult& result,
+    const std::unordered_map<std::string, CUDD::BDD>& action_name_to_bdd,
+    const std::unordered_map<std::string, CUDD::BDD>& action_name_to_pre_bdd) const {
+    // do nothing
+}
+
+void GologProgramAction::tfc(
+    const std::shared_ptr<Syft::VarMgr>& var_mgr, 
+    TFCResult& result,
+    const std::unordered_map<std::string, CUDD::BDD>& action_name_to_bdd,
+    const std::unordered_map<std::string, CUDD::BDD>& action_name_to_pre_bdd) const {
+        golog_ptr x_ptr = std::make_shared<GologProgramAction>(this->action_name_);
+        golog_ptr nil = std::make_shared<GologProgramNil>();
+
+        auto it = action_name_to_bdd.find(this->action_name_);
+        if (it == action_name_to_bdd.end()) {
+            throw std::runtime_error(this->action_name_ + " is not a valid action name");
+        }
+
+        // function T
+        program_action_ptr pa = std::make_shared<ProgramActionPair>(x_ptr, this->action_name_);
+        transition_ptr t = std::make_shared<ProgramTransition>(action_name_to_pre_bdd.at(this->action_name_), nil);
+
+        result.transitions_[pa].insert(t);
+
+        // function F
+        // generate final states using rule F(a) = False
+        CUDD::BDD bdd_false = var_mgr->cudd_mgr()->bddZero();
+
+        result.final_functions_.emplace(x_ptr, bdd_false);
+
+        // function C
+        // generate continuation functions using rule C(a) = True
+        get_continuation_function(var_mgr, x_ptr, result);
+}
+
+void GologProgramTest::tfc(
+    const std::shared_ptr<Syft::VarMgr>& var_mgr, 
+    TFCResult& result,
+    const std::unordered_map<std::string, CUDD::BDD>& action_name_to_bdd,
+    const std::unordered_map<std::string, CUDD::BDD>& action_name_to_pre_bdd) const {
+        golog_ptr x_ptr = std::make_shared<GologProgramTest>(this->arg_);
+        auto bdd = to_bdd(this->arg_, var_mgr);
+
+        // function T
+        // do nothing
+
+        // functiion F
+        // generate final states using the rule F(\varphi?) = \varphi 
+        result.final_functions_.emplace(x_ptr, bdd);
+
+        // function C
+        // generate continuation function using the rule F([\varphi]?) = \varphi
+        get_continuation_function(var_mgr, x_ptr, result);
+}
+
+void GologProgramSequence::tfc(
+    const std::shared_ptr<Syft::VarMgr>& var_mgr, 
+    TFCResult& result,
+    const std::unordered_map<std::string, CUDD::BDD>& action_name_to_bdd,
+    const std::unordered_map<std::string, CUDD::BDD>& action_name_to_pre_bdd) const {
+    auto x_ptr = std::make_shared<const GologProgramSequence>(this->args_);
+    const auto& x_args = this->args_;
+    
+    // std::cout << std::endl;
+    // std::cout << "Visiting program SEQUENCE: " << to_string(x_ptr) << std::endl;
+
+    CUDD::BDD f = var_mgr->cudd_mgr() -> bddOne();
+
+    for (int i = 0; i < x_args.size(); ++i) { 
+        const auto& arg = x_args[i];
+        // std::cout << "Current argument: " << to_string(arg) << std::endl;
+        f *= result.final_functions_[arg];
+        // std::cout << "Transitions of argument found: " << std::endl;
+        auto transitions_snapshot = result.transitions_;
+        for (const auto& p : transitions_snapshot) {
+            if (arg -> equals(p.first->program_)) {
+                program_action_ptr pa = std::make_shared<ProgramActionPair>(x_ptr, p.first->action_);
+                for (const auto& t : p.second) {
+                    // std::cout << "Guard: " << t->guard_ << ". Successor: " << to_string(t->successor_program_) << std::endl;
+                    // generate transition guard
+                    CUDD::BDD guard = var_mgr->cudd_mgr()->bddOne();
+                    for (int j = 0; j<i; ++j) guard *= result.final_functions_[x_args[j]];
+                    guard *= t->guard_;
+                    if (guard != var_mgr->cudd_mgr()->bddZero()) {
+                        // std::cout << "Generating new transition..." << std::flush;
+                        golog_ptr succ = t->successor_program_;
+                        golog_vec vv = {succ};
+                        for (int j = i+1; j<x_args.size(); ++j)
+                            vv.push_back(x_args[j]);
+                        golog_ptr succ_program; 
+                        if (vv.size() == 1) succ_program = vv[0];
+                        else succ_program = std::make_shared<const GologProgramSequence>(vv);
+                        transition_ptr t_ptr = std::make_shared<ProgramTransition>(guard, succ_program);
+                        // std::cout << "Generated transition. T(" << to_string(pa->program_) << ", " << p.first->action_ << ") = (" << guard << ", " << to_string(succ_program) << ")" << std::endl;
+                        result.transitions_[pa].insert(t_ptr);
+                    }
+                }
+            }
+        }
+        // std::cout << std::endl;
+    }
+    result.final_functions_[x_ptr] = f;
+    get_continuation_function(var_mgr, x_ptr, result);
+}
+
+void GologProgramChoice::tfc(
+    const std::shared_ptr<Syft::VarMgr>& var_mgr, 
+    TFCResult& result,
+    const std::unordered_map<std::string, CUDD::BDD>& action_name_to_bdd,
+    const std::unordered_map<std::string, CUDD::BDD>& action_name_to_pre_bdd) const {
+        const auto& args = this->args_;
+        auto x_ptr = std::make_shared<GologProgramChoice>(args);
+        CUDD::BDD f = var_mgr->cudd_mgr()->bddZero();
+
+        // function T
+        for (const auto& arg : args) {
+            auto transitions_snapshot = result.transitions_;
+            for (const auto& p : transitions_snapshot) {
+                if (arg -> equals(p.first->program_)) {
+                    auto pa_main = std::make_shared<ProgramActionPair>(x_ptr, p.first->action_);
+                    for (const auto& t : p.second) {
+                        result.transitions_[pa_main].insert(t);
+                    }
+                }   
+            }
+            // function F
+            f += result.final_functions_[arg];
+        }
+        result.final_functions_[x_ptr] = std::move(f);
+        // function C
+        get_continuation_function(var_mgr, x_ptr, result);
+}
+
+void GologProgramIteration::tfc(
+    const std::shared_ptr<Syft::VarMgr>& var_mgr, 
+    TFCResult& result,
+    const std::unordered_map<std::string, CUDD::BDD>& action_name_to_bdd,
+    const std::unordered_map<std::string, CUDD::BDD>& action_name_to_pre_bdd) const {
+        auto x_ptr = std::make_shared<GologProgramIteration>(this->arg_);
+        const auto& x_arg = this->arg_;
+
+        auto transitions_snapshot = result.transitions_;
+        for (const auto& p : transitions_snapshot) {
+            if (x_arg -> equals(p.first->program_)) {
+                program_action_ptr pa = std::make_shared<ProgramActionPair>(x_ptr, p.first->action_);
+                for (const auto& t : p.second) {
+                    CUDD::BDD guard = t->guard_;
+                    if (guard != var_mgr->cudd_mgr()->bddZero()) {
+                        golog_ptr succ_prg = t->successor_program_;
+                        golog_vec vv = {succ_prg, x_ptr};
+                        golog_ptr new_prg = std::make_shared<const GologProgramSequence>(vv);
+                        transition_ptr t_ptr = std::make_shared<ProgramTransition>(guard, new_prg);
+                        result.transitions_[pa].insert(t_ptr);
+                    }
+                }
+            }
+        }
+        result.final_functions_[x_ptr] = var_mgr->cudd_mgr()->bddOne();
+        get_continuation_function(var_mgr, x_ptr, result);
+}
+
+TFCResult get_tfc_bottom_up(const golog_ptr& x, 
+    const std::shared_ptr<Syft::VarMgr>& var_mgr, 
+    const std::unordered_map<std::string, CUDD::BDD>& action_name_to_bdd,
+    const std::unordered_map<std::string, CUDD::BDD>& action_name_to_pre_bdd) {
+        TFCResult result;
+
+        golog_set closure = syntactic_closure(x);
+
+        golog_priority_queue priority_closure;
+        for (const auto& prg : closure)
+            priority_closure.push(prg);
+
+        while (!priority_closure.empty()) {
+            golog_ptr p = priority_closure.top();
+            // std::cout << "Current program: " << to_string(p) << ". Size: " << p->size() << std::endl;
+            p->tfc(var_mgr, result, action_name_to_bdd, action_name_to_pre_bdd);
+            priority_closure.pop();
+        }
+
+        // result.print();
+        return result;
+    }
 

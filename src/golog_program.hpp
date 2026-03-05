@@ -31,6 +31,7 @@ enum GologProgramTypeID {
 
 class GologProgramNodeVisitor;
 class GologProgramNode;
+struct TFCResult;
 
 typedef std::shared_ptr<const GologProgramNode> golog_ptr;
 typedef std::vector<std::shared_ptr<const GologProgramNode>> golog_vec;
@@ -44,6 +45,11 @@ class GologProgramNode : public std::enable_shared_from_this<GologProgramNode> {
         virtual bool equals(const golog_ptr& x) const = 0;
         virtual std::size_t get_type_id() const = 0;
         virtual std::size_t size() const = 0;
+        virtual void tfc(
+            const std::shared_ptr<Syft::VarMgr>& var_mgr, 
+            TFCResult& result,
+            const std::unordered_map<std::string, CUDD::BDD>& action_name_to_bdd,
+            const std::unordered_map<std::string, CUDD::BDD>& action_name_to_pre_bdd_) const = 0; // used by bottom up construction of tfc function
 };
 
 struct GologProgramHash {
@@ -68,6 +74,11 @@ class GologProgramNil: public GologProgramNode {
         bool equals(const golog_ptr& x) const override;
         std::size_t get_type_id() const;
         std::size_t size() const override;
+        void tfc(
+            const std::shared_ptr<Syft::VarMgr>& var_mgr, 
+            TFCResult& result,
+            const std::unordered_map<std::string, CUDD::BDD>& action_name_to_bdd,
+            const std::unordered_map<std::string, CUDD::BDD>& action_name_to_pre_bdd) const;
 };
 
 // undefined 
@@ -80,6 +91,11 @@ class GologProgramUnd : public GologProgramNode {
         bool equals(const golog_ptr& x) const override; 
         std::size_t get_type_id() const;
         std::size_t size() const override;
+        void tfc(
+            const std::shared_ptr<Syft::VarMgr>& var_mgr, 
+            TFCResult& result,
+            const std::unordered_map<std::string, CUDD::BDD>& action_name_to_bdd,
+            const std::unordered_map<std::string, CUDD::BDD>& action_name_to_pre_bdd) const;
 };
 
 // action
@@ -93,6 +109,11 @@ class GologProgramAction : public GologProgramNode {
         bool equals(const golog_ptr& x) const override; 
         std::size_t get_type_id() const override; 
         std::size_t size() const override;
+        void tfc(
+            const std::shared_ptr<Syft::VarMgr>& var_mgr, 
+            TFCResult& result,
+            const std::unordered_map<std::string, CUDD::BDD>& action_name_to_bdd,
+            const std::unordered_map<std::string, CUDD::BDD>& action_name_to_pre_bdd) const;
 };
 
 // test
@@ -106,6 +127,11 @@ class GologProgramTest : public  GologProgramNode {
         bool equals(const golog_ptr& v) const override;
         std::size_t get_type_id() const;
         std::size_t size() const override;
+        void tfc(
+            const std::shared_ptr<Syft::VarMgr>& var_mgr, 
+            TFCResult& result,
+            const std::unordered_map<std::string, CUDD::BDD>& action_name_to_bdd,
+            const std::unordered_map<std::string, CUDD::BDD>& action_name_to_pre_bdd) const;
 };
 
 // sequence
@@ -119,6 +145,11 @@ class GologProgramSequence : public GologProgramNode {
         bool equals(const golog_ptr& x) const override; 
         std::size_t get_type_id() const;
         std::size_t size() const override;
+        void tfc(
+            const std::shared_ptr<Syft::VarMgr>& var_mgr, 
+            TFCResult& result,
+            const std::unordered_map<std::string, CUDD::BDD>& action_name_to_bdd,
+            const std::unordered_map<std::string, CUDD::BDD>& action_name_to_pre_bdd) const;
 };
 
 // choice
@@ -132,6 +163,11 @@ class GologProgramChoice : public GologProgramNode {
         bool equals(const golog_ptr& x) const override;
         std::size_t get_type_id() const;
         std::size_t size() const override;
+        void tfc(
+            const std::shared_ptr<Syft::VarMgr>& var_mgr, 
+            TFCResult& result,
+            const std::unordered_map<std::string, CUDD::BDD>& action_name_to_bdd,
+            const std::unordered_map<std::string, CUDD::BDD>& action_name_to_pre_bdd) const;
 };
 
 // iteration
@@ -145,6 +181,11 @@ class GologProgramIteration : public GologProgramNode {
         bool equals(const golog_ptr& x) const override; 
         std::size_t get_type_id() const;
         std::size_t size() const override;
+        void tfc(
+            const std::shared_ptr<Syft::VarMgr>& var_mgr, 
+            TFCResult& result,
+            const std::unordered_map<std::string, CUDD::BDD>& action_name_to_bdd,
+            const std::unordered_map<std::string, CUDD::BDD>& action_name_to_pre_bdd) const;
 };
 
 // abstract class for visitors of Golog programs
@@ -394,5 +435,12 @@ ldlf_ptr to_ldlf(
     LydiaAstManager& mgr,
     const golog_ptr& x,
     const std::unordered_map<std::string, std::unordered_set<std::string>>& action_name_to_symbols);
+
+void get_continuation_function(const std::shared_ptr<Syft::VarMgr>& var_mgr, const golog_ptr& program, TFCResult& result);
+
+TFCResult get_tfc_bottom_up(const golog_ptr& x, 
+    const std::shared_ptr<Syft::VarMgr>& var_mgr, 
+    const std::unordered_map<std::string, CUDD::BDD>& action_name_to_bdd,
+    const std::unordered_map<std::string, CUDD::BDD>& action_name_to_pre_bdd_);
 
 #endif
