@@ -183,8 +183,8 @@ ExplicitStateProgramGraph ExplicitStateProgramGraph::from_golog_program(
     const std::unordered_map<std::string, CUDD::BDD>& action_name_to_pre_bdd) {
         
         // compute function T, F and C for the input golog program
-        // TFCResult tfc = std::move(get_tfc(golog_program, var_mgr, action_name_to_bdd, action_name_to_pre_bdd));
-        TFCResult tfc = std::move(get_tfc_bottom_up(golog_program, var_mgr, action_name_to_bdd, action_name_to_pre_bdd));
+        TFCResult tfc = std::move(get_tfc(golog_program, var_mgr, action_name_to_bdd, action_name_to_pre_bdd));
+        // TFCResult tfc = std::move(get_tfc_bottom_up(golog_program, var_mgr, action_name_to_bdd, action_name_to_pre_bdd));
 
         // debug
         // tfc.print();

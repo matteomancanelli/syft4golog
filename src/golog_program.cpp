@@ -935,12 +935,10 @@ TFCResult get_tfc_bottom_up(const golog_ptr& x,
 
         while (!priority_closure.empty()) {
             golog_ptr p = priority_closure.top();
-            // std::cout << "Current program: " << to_string(p) << ". Size: " << p->size() << std::endl;
             p->tfc(var_mgr, result, action_name_to_bdd, action_name_to_pre_bdd);
             priority_closure.pop();
         }
 
-        // result.print();
         return result;
     }
 
