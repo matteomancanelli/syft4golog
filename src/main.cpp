@@ -27,7 +27,7 @@ double sumVec(const std::vector<double>& vec) {
 }
 
 int main(int argc, char ** argv) {
-    
+
     CLI::App app {
         "syft4golog: a tool for reactive synthesis for Golog programs"
     };
@@ -36,7 +36,6 @@ int main(int argc, char ** argv) {
     int dump_strategy_flag = 0, dump_ts_flag = 0, dump_domain_dfa_flag = 0, print_domain_flag = 0, interactive_flag = 0;
     int algorithm_id = 1;
     std::string outfile = "";
-
 
     CLI::Option* domain_file_option =
         app.add_option("-d,--domain-file", domain_file, "Path to NDBAT domain specification file (PDDL FOND)") ->
@@ -651,3 +650,90 @@ int main(int argc, char ** argv) {
 // std::cout << "DONE" << std::endl; 
 
 // dfa.dfa_print();
+
+// construct and order syntactic closure
+
+// std::cout << "Parsing and transforming domain to DFA..." << std::flush;
+// std::shared_ptr<Syft::VarMgr> var_mgr = std::make_shared<Syft::VarMgr>(); 
+
+// std::string domain_file = "domain.pddl";
+// std::string init_file = "p4.pddl";
+// Domain domain(var_mgr, domain_file, init_file);
+
+// auto domain_dfa = domain.to_symbolic();
+// domain.print_domain();
+// var_mgr->print_mgr();
+
+// std::string program = "nop";
+// std::string program = "[at_l11]?";
+// std::string program = "move_l11_l12 | move_l12_l11";
+// std::string program = "(move_l11_l12 ; move_l12_l11)";
+// std::string program = "(nop)*";
+// std::string program = "(move_l11_l12 | move_l12_l11)*";
+// std::string program = "(move_l11_l12 ; move_l12_l11)*";
+// std::string program = "(nop | move_l11_l12 | move_l12_l11)*";
+// std::string program = "(nop | (move_l11_l12 ; move_l12_l11))";
+// std::string program = "(nop | (move_l11_l12 ; move_l12_l11))*";
+// std::string program = "((nop | (move_l11_l12 ; move_l12_l11))*);[at_l11]?";
+// std::string program = "(nil | (move_l11_l12 ; move_l12_l11))";
+// std::string program = "(nil | (move_l11_l12 ; move_l12_l11))*";
+// std::string program = "((nil | (move_l11_l12 ; move_l12_l11))*);[at_l11]?";
+// std::string program = "((move_l11_l12 ; (nil | changetire_l12))|(move_l11_l22 ; (nil | changetire_l22))|(move_l11_l21 ; (nil | changetire_l21))|(move_l12_l11 ; (nil | changetire_l11))|(move_l12_l21 ; (nil | changetire_l21))|(move_l12_l13 ; (nil | changetire_l13))|(move_l12_l22 ; (nil | changetire_l22))|(move_l12_l23 ; (nil | changetire_l23))|(move_l13_l12 ; (nil | changetire_l12))|(move_l13_l22 ; (nil | changetire_l22))|(move_l13_l14 ; (nil | changetire_l14))|(move_l13_l23 ; (nil | changetire_l23))|(move_l13_l24 ; (nil | changetire_l24))|(move_l14_l13 ; (nil | changetire_l13))|(move_l14_l23 ; (nil | changetire_l23))|(move_l14_l24 ; (nil | changetire_l24))|(move_l21_l32 ; (nil | changetire_l32))|(move_l21_l22 ; (nil | changetire_l22))|(move_l21_l31 ; (nil | changetire_l31))|(move_l21_l11 ; (nil | changetire_l11))|(move_l21_l12 ; (nil | changetire_l12))|(move_l22_l21 ; (nil | changetire_l21))|(move_l22_l12 ; (nil | changetire_l12))|(move_l22_l33 ; (nil | changetire_l33))|(move_l22_l31 ; (nil | changetire_l31))|(move_l22_l11 ; (nil | changetire_l11))|(move_l22_l23 ; (nil | changetire_l23))|(move_l22_l13 ; (nil | changetire_l13))|(move_l22_l32 ; (nil | changetire_l32))|(move_l23_l24 ; (nil | changetire_l24))|(move_l23_l33 ; (nil | changetire_l33))|(move_l23_l13 ; (nil | changetire_l13))|(move_l23_l14 ; (nil | changetire_l14))|(move_l23_l32 ; (nil | changetire_l32))|(move_l23_l34 ; (nil | changetire_l34))|(move_l23_l12 ; (nil | changetire_l12))|(move_l23_l22 ; (nil | changetire_l22))|(move_l24_l33 ; (nil | changetire_l33))|(move_l24_l14 ; (nil | changetire_l14))|(move_l24_l13 ; (nil | changetire_l13))|(move_l24_l23 ; (nil | changetire_l23))|(move_l24_l34 ; (nil | changetire_l34))|(move_l31_l32 ; (nil | changetire_l32))|(move_l31_l22 ; (nil | changetire_l22))|(move_l31_l21 ; (nil | changetire_l21))|(move_l31_l42 ; (nil | changetire_l42))|(move_l31_l41 ; (nil | changetire_l41))|(move_l32_l43 ; (nil | changetire_l43))|(move_l32_l42 ; (nil | changetire_l42))|(move_l32_l22 ; (nil | changetire_l22))|(move_l32_l31 ; (nil | changetire_l31))|(move_l32_l33 ; (nil | changetire_l33))|(move_l32_l41 ; (nil | changetire_l41))|(move_l32_l21 ; (nil | changetire_l21))|(move_l32_l23 ; (nil | changetire_l23))|(move_l33_l22 ; (nil | changetire_l22))|(move_l33_l32 ; (nil | changetire_l32))|(move_l33_l42 ; (nil | changetire_l42))|(move_l33_l34 ; (nil | changetire_l34))|(move_l33_l23 ; (nil | changetire_l23))|(move_l33_l44 ; (nil | changetire_l44))|(move_l33_l24 ; (nil | changetire_l24))|(move_l33_l43 ; (nil | changetire_l43))|(move_l34_l24 ; (nil | changetire_l24))|(move_l34_l44 ; (nil | changetire_l44))|(move_l34_l23 ; (nil | changetire_l23))|(move_l34_l33 ; (nil | changetire_l33))|(move_l34_l43 ; (nil | changetire_l43))|(move_l41_l31 ; (nil | changetire_l31))|(move_l41_l42 ; (nil | changetire_l42))|(move_l41_l32 ; (nil | changetire_l32))|(move_l42_l43 ; (nil | changetire_l43))|(move_l42_l33 ; (nil | changetire_l33))|(move_l42_l41 ; (nil | changetire_l41))|(move_l42_l32 ; (nil | changetire_l32))|(move_l42_l31 ; (nil | changetire_l31))|(move_l43_l33 ; (nil | changetire_l33))|(move_l43_l44 ; (nil | changetire_l44))|(move_l43_l34 ; (nil | changetire_l34))|(move_l43_l32 ; (nil | changetire_l32))|(move_l43_l42 ; (nil | changetire_l42))|(move_l44_l33 ; (nil | changetire_l33))|(move_l44_l34 ; (nil | changetire_l34))|(move_l44_l43 ; (nil | changetire_l43)))* ; [at_l44]?";
+
+// auto driver = std::make_shared<GologDriver>(); 
+// std::stringstream program_stream(program);
+// driver->parse(program_stream);
+// golog_ptr parsed_program = driver->get_result();
+
+// golog_set closure = syntactic_closure(parsed_program);
+
+// golog_priority_queue ordered_closure;
+// for (const auto& prg : closure)
+//     ordered_closure.push(prg);
+
+// while (!ordered_closure.empty()) {
+//     golog_ptr p = ordered_closure.top();
+//     ordered_closure.pop();
+//     std::cout << to_string(p) << ". " << p->size() << std::endl;
+// }
+
+// TFC Computation bottom up (vs top down)
+// std::cout << "Parsing and transforming domain to DFA..." << std::flush;
+// std::shared_ptr<Syft::VarMgr> var_mgr = std::make_shared<Syft::VarMgr>(); 
+
+// std::string domain_file = "domain.pddl";
+// std::string init_file = "p4.pddl";
+// Domain domain(var_mgr, domain_file, init_file);
+
+// auto domain_dfa = domain.to_symbolic();
+// domain.print_domain();
+// var_mgr->print_mgr();
+
+// // std::string program = "nop"; // OK
+// // std::string program = "[at_l11]?"; // OK
+// // std::string program = "nop | [at_l11]?"; // OK
+// // std::string program = "(nop*)"; // OK
+// // std::string program = "(move_l11_l12 | move_l12_l11)*"; // OK
+// // std::string program = "(move_l11_l12 | move_l12_l11 | [at_l11]?)"; OK 
+// // std::string program = "(move_l11_l12 | move_l12_l11 | [at_l11]?)*"; // OK?
+// // std::string program = "move_l11_l12 ; move_l12_l11"; // OK 
+// // std::string program = "(move_l11_l12 ; move_l12_l11)*"; // OK
+// // std::string program = "(move_l11_l12 | move_l12_l11)* ; [at_l11]?";
+// std::string program = "((move_l11_l12 ; (nil | changetire_l12))|(move_l11_l22 ; (nil | changetire_l22))|(move_l11_l21 ; (nil | changetire_l21))|(move_l12_l11 ; (nil | changetire_l11))|(move_l12_l21 ; (nil | changetire_l21))|(move_l12_l13 ; (nil | changetire_l13))|(move_l12_l22 ; (nil | changetire_l22))|(move_l12_l23 ; (nil | changetire_l23))|(move_l13_l12 ; (nil | changetire_l12))|(move_l13_l22 ; (nil | changetire_l22))|(move_l13_l14 ; (nil | changetire_l14))|(move_l13_l23 ; (nil | changetire_l23))|(move_l13_l24 ; (nil | changetire_l24))|(move_l14_l13 ; (nil | changetire_l13))|(move_l14_l23 ; (nil | changetire_l23))|(move_l14_l24 ; (nil | changetire_l24))|(move_l21_l32 ; (nil | changetire_l32))|(move_l21_l22 ; (nil | changetire_l22))|(move_l21_l31 ; (nil | changetire_l31))|(move_l21_l11 ; (nil | changetire_l11))|(move_l21_l12 ; (nil | changetire_l12))|(move_l22_l21 ; (nil | changetire_l21))|(move_l22_l12 ; (nil | changetire_l12))|(move_l22_l33 ; (nil | changetire_l33))|(move_l22_l31 ; (nil | changetire_l31))|(move_l22_l11 ; (nil | changetire_l11))|(move_l22_l23 ; (nil | changetire_l23))|(move_l22_l13 ; (nil | changetire_l13))|(move_l22_l32 ; (nil | changetire_l32))|(move_l23_l24 ; (nil | changetire_l24))|(move_l23_l33 ; (nil | changetire_l33))|(move_l23_l13 ; (nil | changetire_l13))|(move_l23_l14 ; (nil | changetire_l14))|(move_l23_l32 ; (nil | changetire_l32))|(move_l23_l34 ; (nil | changetire_l34))|(move_l23_l12 ; (nil | changetire_l12))|(move_l23_l22 ; (nil | changetire_l22))|(move_l24_l33 ; (nil | changetire_l33))|(move_l24_l14 ; (nil | changetire_l14))|(move_l24_l13 ; (nil | changetire_l13))|(move_l24_l23 ; (nil | changetire_l23))|(move_l24_l34 ; (nil | changetire_l34))|(move_l31_l32 ; (nil | changetire_l32))|(move_l31_l22 ; (nil | changetire_l22))|(move_l31_l21 ; (nil | changetire_l21))|(move_l31_l42 ; (nil | changetire_l42))|(move_l31_l41 ; (nil | changetire_l41))|(move_l32_l43 ; (nil | changetire_l43))|(move_l32_l42 ; (nil | changetire_l42))|(move_l32_l22 ; (nil | changetire_l22))|(move_l32_l31 ; (nil | changetire_l31))|(move_l32_l33 ; (nil | changetire_l33))|(move_l32_l41 ; (nil | changetire_l41))|(move_l32_l21 ; (nil | changetire_l21))|(move_l32_l23 ; (nil | changetire_l23))|(move_l33_l22 ; (nil | changetire_l22))|(move_l33_l32 ; (nil | changetire_l32))|(move_l33_l42 ; (nil | changetire_l42))|(move_l33_l34 ; (nil | changetire_l34))|(move_l33_l23 ; (nil | changetire_l23))|(move_l33_l44 ; (nil | changetire_l44))|(move_l33_l24 ; (nil | changetire_l24))|(move_l33_l43 ; (nil | changetire_l43))|(move_l34_l24 ; (nil | changetire_l24))|(move_l34_l44 ; (nil | changetire_l44))|(move_l34_l23 ; (nil | changetire_l23))|(move_l34_l33 ; (nil | changetire_l33))|(move_l34_l43 ; (nil | changetire_l43))|(move_l41_l31 ; (nil | changetire_l31))|(move_l41_l42 ; (nil | changetire_l42))|(move_l41_l32 ; (nil | changetire_l32))|(move_l42_l43 ; (nil | changetire_l43))|(move_l42_l33 ; (nil | changetire_l33))|(move_l42_l41 ; (nil | changetire_l41))|(move_l42_l32 ; (nil | changetire_l32))|(move_l42_l31 ; (nil | changetire_l31))|(move_l43_l33 ; (nil | changetire_l33))|(move_l43_l44 ; (nil | changetire_l44))|(move_l43_l34 ; (nil | changetire_l34))|(move_l43_l32 ; (nil | changetire_l32))|(move_l43_l42 ; (nil | changetire_l42))|(move_l44_l33 ; (nil | changetire_l33))|(move_l44_l34 ; (nil | changetire_l34))|(move_l44_l43 ; (nil | changetire_l43)))* ; [at_l44]?";
+
+// auto driver = std::make_shared<GologDriver>(); 
+// std::stringstream program_stream(program);
+// driver->parse(program_stream);
+// golog_ptr parsed_program = driver->get_result();
+
+// // TFCResult get_tfc_bottom_up(const golog_ptr& x, 
+// // const std::shared_ptr<Syft::VarMgr>& var_mgr, 
+// // const std::unordered_map<std::string, CUDD::BDD>& action_name_to_bdd,
+// // const std::unordered_map<std::string, CUDD::BDD>& action_name_to_pre_bdd_);
+
+// TFCResult tfc = get_tfc_bottom_up(
+//     parsed_program,
+//     var_mgr,
+//     domain.get_action_name_to_bdd(),
+//     domain.get_action_name_to_pre_bdd()
+// );
